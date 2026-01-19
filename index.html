@@ -41,14 +41,18 @@
         .shutter-top { top: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .shutter-bottom { bottom: 0; border-top: 1px solid rgba(255,255,255,0.05); }
 
-        /* CONTENT */
+        /* CONTENT LAYOUT (Bessere Verteilung) */
         .loader-content {
             z-index: 10;
             position: relative;
             width: 90%; 
             max-width: 600px;
-            height: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 80%; /* Nicht volle Höhe, damit es nicht am Rand klebt */
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            /* WICHTIG: Verteilt den Platz gleichmäßig zwischen den Elementen */
+            justify-content: space-evenly;
         }
 
         /* TEXT STYLING */
@@ -66,13 +70,11 @@
         .text-upper {
             font-size: clamp(1rem, 3vw, 1.4rem);
             opacity: 0.8;
-            margin-bottom: 40px; 
         }
 
         .text-lower {
             font-size: clamp(1rem, 3vw, 1.4rem);
             opacity: 0.8;
-            margin-top: 40px; 
         }
 
         .word { 
@@ -82,10 +84,10 @@
             transform: translateY(10px); 
         }
 
-        /* --- GRUNGE EYE --- */
+        /* --- NEW ELEGANT EYE --- */
         .eye-container {
             position: relative;
-            width: 280px; height: 120px; 
+            width: 300px; height: 150px;
             display: flex; justify-content: center; align-items: center;
             opacity: 0;
         }
@@ -98,41 +100,44 @@
             overflow: visible;
         }
 
-        .lid-stroke {
-            stroke-width: 2.5;
-            filter: url(#roughPaper);
+        /* Die neuen, sauberen Skizzen-Linien */
+        .elegant-sketch {
+            stroke-width: 2;
+            /* Macht die Linie leicht unruhig, wie handgezeichnet */
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 0;
+            filter: drop-shadow(0 0 2px rgba(255,255,255,0.5));
         }
 
-        .pupil-scribble {
+        /* Die Pupille */
+        .pupil-group {
+            transform-origin: center;
+            animation: pupil-breathe 4s infinite ease-in-out;
+        }
+        
+        /* Füllung der Pupille mit leichter Struktur */
+        .sketch-fill {
             fill: white;
             stroke: none;
-            transform-origin: center;
-            animation: pupil-twitch 3s infinite ease-in-out;
+            filter: url(#sketchFilter);
         }
 
-        .ink-drip {
-            stroke-width: 3;
-            stroke-linecap: round;
-            stroke-dasharray: 100;
-            stroke-dashoffset: 100;
-            opacity: 0.9;
+        /* Träne */
+        .tear-line {
+            stroke-width: 1.5;
+            opacity: 0.7;
+            animation: tear-flow 3s infinite ease-in-out;
         }
 
-        .drip-main { animation: bleed 3s infinite ease-in; }
-        .drip-side { animation: bleed 4.5s infinite ease-in 1s; stroke-width: 2; }
-
-        @keyframes bleed {
-            0% { stroke-dashoffset: 100; opacity: 0; }
-            20% { opacity: 1; }
-            80% { stroke-dashoffset: 0; opacity: 0.4; }
-            100% { stroke-dashoffset: -20; opacity: 0; }
-        }
-
-        @keyframes pupil-twitch {
+        @keyframes pupil-breathe {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(0.95); }
-            52% { transform: scale(0.95) translate(1px, 0); }
-            54% { transform: scale(0.95) translate(-1px, 0); }
+            50% { transform: scale(0.9); }
+        }
+
+        @keyframes tear-flow {
+            0% { stroke-dasharray: 5 10; stroke-dashoffset: 20; opacity: 0.4; }
+            50% { stroke-dasharray: 10 5; stroke-dashoffset: 0; opacity: 0.8; }
+            100% { stroke-dasharray: 5 10; stroke-dashoffset: -20; opacity: 0.4; }
         }
 
         /* --- STAGE --- */
@@ -145,7 +150,7 @@
         .scroll-hint { position: absolute; bottom: 5vh; font-size: 0.8rem; letter-spacing: 0.3em; color: white; animation: bounce 2s infinite; opacity: 0; }
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
 
-        /* --- LINKS (FIXED CONTRAST) --- */
+        /* --- LINKS --- */
         .links-wrapper { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
@@ -154,11 +159,8 @@
 
         .link-card { 
             width: 85%; max-width: 400px; padding: 20px 24px; margin: 8px 0; 
-            
-            /* NEU: Dunkler Hintergrund für perfekten Kontrast */
             background: rgba(0, 0, 0, 0.6); 
             border: 1px solid rgba(255, 255, 255, 0.3); 
-            
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
             transform: translate3d(0,0,0); backface-visibility: hidden; border-radius: 16px; 
             display: flex; justify-content: space-between; align-items: center; 
@@ -177,10 +179,7 @@
         
         .link-content { display: flex; align-items: center; gap: 15px; }
         .icon { width: 24px; height: 24px; fill: white; transition: fill 0.2s; }
-        
-        /* Icon Farbe bei Hover umdrehen */
         .link-card:hover .icon { fill: black; }
-        
         .flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; transform: scaleY(0); transform-origin: bottom; pointer-events: none; }
     </style>
 </head>
@@ -194,27 +193,23 @@
             <div class="text-line text-upper" id="line1"></div>
             
             <div class="eye-container" id="eyeIcon">
-                <svg class="sketch-eye" viewBox="0 0 300 120" width="300" height="120">
+                <svg class="sketch-eye" viewBox="0 0 300 200" width="300" height="200">
                     <defs>
-                        <filter id="roughPaper">
-                            <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" result="noise" />
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" />
+                        <filter id="sketchFilter">
+                            <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" result="noise"/>
+                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
                         </filter>
                     </defs>
+                    
+                    <path class="elegant-sketch" d="M 30,100 Q 150,20 270,100" />
+                    <path class="elegant-sketch" d="M 30,100 Q 150,180 270,100" />
 
-                    <path class="lid-stroke" d="M 20,70 Q 150,10 280,70" />
-                    <path class="lid-stroke" d="M 30,65 Q 150,20 270,65" style="opacity:0.6; stroke-width:1;" />
-
-                    <path class="lid-stroke" d="M 30,70 Q 150,110 270,70" />
-                    <path class="lid-stroke" d="M 40,75 Q 150,100 260,75" style="opacity:0.6;" />
-
-                    <g class="pupil-scribble" transform="translate(150, 70)">
-                        <path d="M -18,-8 L -5,-18 L 8,-12 L 18,-20 L 12,-2 L 22,8 L 5,15 L 2,25 L -10,15 L -22,5 Z" />
-                        <circle r="10" fill="white" />
+                    <g class="pupil-group" transform="translate(150, 100)">
+                         <circle cx="0" cy="0" r="20" class="sketch-fill"/>
+                         <circle cx="0" cy="0" r="22" stroke="white" stroke-width="1" fill="none" opacity="0.5"/>
                     </g>
 
-                    <path class="ink-drip drip-main" d="M 150,100 L 150,160" />
-                    <path class="ink-drip drip-side" d="M 180,90 L 185,140" />
+                    <path class="tear-line elegant-sketch" d="M 150,140 C 150,160 145,180 150,200" opacity="0.6" />
                 </svg>
             </div>
 
