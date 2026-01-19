@@ -22,6 +22,7 @@
             margin: 0;
             cursor: default;
             -webkit-font-smoothing: antialiased;
+            overscroll-behavior: none; 
         }
 
         /* --- LOADER CONTAINER --- */
@@ -65,130 +66,89 @@
             font-weight: 600;
             text-align: center;
             z-index: 20;
-            display: flex; 
-            flex-wrap: wrap; 
-            justify-content: center; 
-            gap: 0.6rem; 
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; 
         }
-        
-        .text-upper {
-            font-size: clamp(1rem, 3vw, 1.4rem);
-            opacity: 0.8;
-        }
+        .text-upper { font-size: clamp(1rem, 3vw, 1.4rem); opacity: 0.8; }
+        .text-lower { font-size: clamp(1rem, 3vw, 1.4rem); opacity: 0.8; }
+        .word { display: inline-block; opacity: 0; filter: blur(5px); transform: translateY(10px); }
 
-        .text-lower {
-            font-size: clamp(1rem, 3vw, 1.4rem);
-            opacity: 0.8;
-        }
-
-        .word { 
-            display: inline-block; 
-            opacity: 0; 
-            filter: blur(5px); 
-            transform: translateY(10px); 
-        }
-
-        /* --- EVIL CRYING EYE ICON --- */
+        /* --- SAD MANGA EYE ICON --- */
         .eye-container {
             position: relative;
-            width: 300px; height: 220px; /* Etwas höher für die Träne */
-            display: flex; justify-content: center; align-items: center;
+            /* Viel Platz nach unten für die fallenden Tränen */
+            width: 300px; height: 350px; 
+            display: flex; justify-content: center; align-items: flex-start; /* Oben ausrichten */
             opacity: 0;
             will-change: opacity;
+            padding-top: 20px;
         }
 
-        .evil-eye-svg {
-            overflow: visible;
-            /* Aggressives Zucken statt sanftem Schweben */
-            animation: angry-twitch 0.15s infinite alternate ease-in-out;
-        }
-        
-        .sketch-filter {
-            filter: url(#roughEdges);
+        .manga-eye-svg {
+            overflow: visible; /* Wichtig, damit Tränen rausfliegen können */
         }
 
-        /* Die böse Pupille zuckt extra */
-        .evil-pupil {
-            animation: pupil-stare 3s infinite alternate ease-in-out;
-        }
+        /* Lid und Braue */
+        .eye-lines { stroke: white; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+        /* Iris */
+        .eye-iris { fill: none; stroke: white; }
+        /* Glanzpunkte (Highlights) */
+        .eye-highlight { fill: white; }
 
-        /* Die schwere Träne fließt */
-        .heavy-tear {
-            stroke-dasharray: 150;
-            stroke-dashoffset: 150;
-            animation: tear-drip 4s infinite ease-in;
+        /* Die Tränen (Tropfenform) */
+        .tear-drop {
+            fill: white;
             opacity: 0.9;
         }
 
-        @keyframes angry-twitch {
-            0% { transform: translate(0, 0); }
-            100% { transform: translate(1px, 1.5px); }
+        /* Animation: Sammelnder Tropfen im Auge */
+        .tear-welling {
+            animation: welling 3s infinite ease-in-out alternate;
+            transform-origin: center;
         }
 
-        @keyframes pupil-stare {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(0.9) translate(0, 2px); }
+        /* Animation: Fallende Tropfen (Dynamisch raus aus dem Bild) */
+        .tear-falling-1 {
+            animation: fallDownCreative 2.5s infinite ease-in;
+        }
+        .tear-falling-2 {
+            animation: fallDownCreative 3s infinite ease-in 1.2s; /* Verzögert */
         }
 
-        @keyframes tear-drip {
-            0% { stroke-dashoffset: 150; opacity: 0; }
-            30% { opacity: 1; }
-            80% { stroke-dashoffset: 0; opacity: 0.6; }
-            100% { stroke-dashoffset: -50; opacity: 0; }
+        @keyframes welling {
+            0% { transform: scale(0.8) translate(0, 0); opacity: 0.6; }
+            100% { transform: scale(1.1) translate(2px, 3px); opacity: 1; }
         }
 
+        @keyframes fallDownCreative {
+            0% { 
+                opacity: 0; 
+                transform: translate(0, 0) scale(0.5); 
+            }
+            20% {
+                opacity: 1;
+                transform: translate(5px, 40px) scale(0.8);
+            }
+            100% { 
+                opacity: 0; 
+                /* Fällt weit aus dem SVG Bereich heraus */
+                transform: translate(-20px, 350px) scale(1.5) rotate(-10deg); 
+            }
+        }
 
         /* --- STAGE (Video) --- */
-        .stage { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 0; pointer-events: none; background: #000; 
-        }
-        video { 
-            width: 100%; height: 100%; object-fit: cover; 
-            opacity: 1; display: block; 
-            will-change: transform;
-            transform: translate3d(0, 0, 0); 
-        }
+        .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; background: #000; }
+        video { width: 100%; height: 100%; object-fit: cover; opacity: 1; display: block; will-change: transform; transform: translate3d(0, 0, 0); }
 
         /* --- UI LAYER --- */
-        .ui-layer { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 10; pointer-events: none; 
-            display: flex; flex-direction: column; justify-content: center; align-items: center; 
-        }
-        .hero-title { 
-            font-size: clamp(3rem, 12vw, 8rem); font-weight: 900; 
-            text-align: center; line-height: 0.9; color: white; 
-            text-shadow: 0 0 30px rgba(255,255,255,0.3); mix-blend-mode: overlay; 
-        }
-        .scroll-hint { 
-            position: absolute; bottom: 5vh; font-size: 0.8rem; letter-spacing: 0.3em; 
-            color: white; animation: bounce 2s infinite; opacity: 0; 
-        }
+        .ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .hero-title { font-size: clamp(3rem, 12vw, 8rem); font-weight: 900; text-align: center; line-height: 0.9; color: white; text-shadow: 0 0 30px rgba(255,255,255,0.3); mix-blend-mode: overlay; }
+        .scroll-hint { position: absolute; bottom: 5vh; font-size: 0.8rem; letter-spacing: 0.3em; color: white; animation: bounce 2s infinite; opacity: 0; }
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
 
         /* --- LINKS --- */
-        .links-wrapper { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            perspective: 1000px; pointer-events: none; opacity: 0; 
-        }
-
-        .link-card { 
-            width: 85%; max-width: 400px; padding: 22px 30px; margin: 10px 0; 
-            background: rgba(0, 0, 0, 0.6); 
-            border: 1px solid rgba(255, 255, 255, 0.25); 
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
-            transform: translate3d(0,0,0); backface-visibility: hidden; border-radius: 18px; 
-            display: flex; justify-content: center; align-items: center; gap: 16px; 
-            text-decoration: none; color: white; font-weight: 800; font-size: 1.15rem; text-transform: uppercase; letter-spacing: 0.02em; 
-            opacity: 0; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; will-change: transform, opacity;
-        }
-
-        .link-card:hover { 
-            background: white; color: black; border-color: white; box-shadow: 0 10px 50px rgba(255,255,255,0.3); transform: scale(1.02);
-        }
-        
+        .links-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; perspective: 1000px; pointer-events: none; opacity: 0; }
+        .link-card { width: 85%; max-width: 400px; padding: 22px 30px; margin: 10px 0; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transform: translate3d(0,0,0); backface-visibility: hidden; border-radius: 18px; display: flex; justify-content: center; align-items: center; gap: 16px; text-decoration: none; color: white; font-weight: 800; font-size: 1.15rem; text-transform: uppercase; letter-spacing: 0.02em; opacity: 0; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; will-change: transform, opacity; }
+        .link-card:hover { background: white; color: black; border-color: white; box-shadow: 0 10px 50px rgba(255,255,255,0.3); transform: scale(1.02); }
         .icon { width: 26px; height: 26px; fill: white; transition: fill 0.3s; }
         .link-card:hover .icon { fill: black; }
         .flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; transform: scaleY(0); transform-origin: bottom; pointer-events: none; }
@@ -204,24 +164,27 @@
             <div class="text-line text-upper" id="line1"></div>
             
             <div class="eye-container" id="eyeIcon">
-                <svg class="evil-eye-svg sketch-filter" viewBox="0 0 200 160" width="260" height="208">
-                    <defs>
-                        <filter id="roughEdges">
-                            <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="4" result="noise" />
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" />
-                        </filter>
-                    </defs>
+                <svg class="manga-eye-svg" viewBox="0 0 300 350" width="300" height="350">
+                    <path class="eye-lines" d="M 70,60 Q 150,20 230,60" stroke-width="4" opacity="0.8" />
                     
-                    <g stroke="white" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M 20,60 Q 100,100 180,40" stroke-width="5" />
-                        
-                        <path d="M 30,80 Q 100,110 170,70" />
+                    <path class="eye-lines" d="M 50,110 Q 150,50 250,110" stroke-width="7" />
+                    
+                    <path class="eye-lines" d="M 60,120 Q 100,150 150,145 Q 200,150 240,120" stroke-width="3" opacity="0.7" />
 
-                        <g transform="translate(100, 85)">
-                            <circle class="evil-pupil" r="6" fill="white" stroke="none" />
-                        </g>
+                    <g>
+                        <circle class="eye-iris" cx="150" cy="110" r="45" stroke-width="3" />
+                        <circle class="eye-highlight" cx="130" cy="90" r="15" />
+                        <circle class="eye-highlight" cx="170" cy="125" r="6" opacity="0.7" />
+                    </g>
 
-                        <path class="heavy-tear" d="M 50,90 Q 55,120 50,150 L 45,180" stroke-width="6" opacity="0.8" />
+                    <path class="tear-drop tear-welling" d="M 235,125 C 235,125 250,140 250,155 C 250,165 242,172 235,172 C 228,172 220,165 220,155 C 220,140 235,125 235,125 Z" transform="scale(0.7)" />
+                    
+                    <g transform="translate(230, 130)">
+                        <path class="tear-drop tear-falling-1" d="M 0,0 C 0,0 15,25 15,45 C 15,60 5,70 0,70 C -5,70 -15,60 -15,45 C -15,25 0,0 0,0 Z" />
+                    </g>
+
+                     <g transform="translate(180, 145)">
+                        <path class="tear-drop tear-falling-2" d="M 0,0 C 0,0 10,20 10,35 C 10,45 5,55 0,55 C -5,55 -10,45 -10,35 C -10,20 0,0 0,0 Z" />
                     </g>
                 </svg>
             </div>
@@ -321,31 +284,26 @@
         window.addEventListener('wheel', triggerOpen, { passive: true });
         window.addEventListener('scroll', triggerOpen, { passive: true });
 
-        // --- 4. SCROLL LOGIK ---
+        // --- 4. SCROLL LOGIK (Mit Fix für schwarzes Ende) ---
         function initScroll() {
             if(video.readyState >= 1) video.currentTime = 0.01;
 
             let uiTl = gsap.timeline({ 
-                scrollTrigger: { 
-                    trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.5 
-                } 
+                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.5 } 
             });
             uiTl.to("#intro", { scale: 1.5, opacity: 0, filter: "blur(20px)", duration: 0.1 }, 0);
             uiTl.to("#outro", { opacity: 1, pointerEvents: "all", duration: 0.2 }, 0.15);
             uiTl.to(".link-card", { y: 0, scale: 1, opacity: 1, stagger: 0.1, duration: 0.8, ease: "back.out(1.2)", force3D: true }, 0.20);
 
-            const dur = video.duration || 10;
-            let proxy = { time: 0 };
+            // STOPPT das Video kurz vor Ende
+            const dur = (video.duration && video.duration > 0.1) ? video.duration - 0.05 : 10;
             
+            let proxy = { time: 0 };
             gsap.to(proxy, {
                 time: dur, 
                 ease: "none",
-                scrollTrigger: { 
-                    trigger: "body", start: "top top", end: "bottom bottom", scrub: 1.2
-                },
-                onUpdate: () => { 
-                    if(video.readyState >= 1) video.currentTime = proxy.time; 
-                }
+                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1.2 },
+                onUpdate: () => { if(video.readyState >= 1) video.currentTime = proxy.time; }
             });
         }
 
