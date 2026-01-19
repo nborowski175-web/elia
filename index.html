@@ -23,7 +23,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* --- PHASE 1: BATTERY LOADER --- */
+        /* --- BATTERY LOADER --- */
         #batteryLayer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 10000; background: #000;
@@ -40,51 +40,39 @@
         .battery-fill { width: 0%; height: 100%; background: #fff; border-radius: 1px; }
         .loading-text { color: white; margin-top: 15px; font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; font-weight: 300; }
 
-        /* --- PHASE 2: MANGA EYE CONTENT --- */
-        .loader-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 9998; display: flex; flex-direction: column; justify-content: center; align-items: center;
-            opacity: 0; visibility: hidden;
+        /* --- SHUTTERS --- */
+        .shutter {
+            position: fixed; left: 0; width: 100%; height: 50.5%; 
+            background: #000;
+            z-index: 9999;
+            will-change: transform;
         }
-        .shutter { position: fixed; left: 0; width: 100%; height: 50.5%; background: #000; z-index: 1; will-change: transform; }
         .shutter-top { top: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .shutter-bottom { bottom: 0; border-top: 1px solid rgba(255,255,255,0.05); }
 
-        .loader-content {
-            z-index: 10; position: relative; width: 90%; max-width: 600px;
-            height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .text-line { color: white; font-weight: 600; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
-        .text-upper { font-size: clamp(1rem, 3vw, 1.4rem); opacity: 0.8; margin-bottom: 40px; }
-        .text-lower { font-size: clamp(1rem, 3vw, 1.4rem); opacity: 0.8; margin-top: 40px; }
-        .word { display: inline-block; opacity: 0; filter: blur(5px); transform: translateY(10px); }
+        /* --- STAGE: VIDEO --- */
+        .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background: #000; }
+        video { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-        /* SKETCH EYE */
-        .eye-container { position: relative; width: 300px; height: 120px; display: flex; justify-content: center; align-items: center; }
-        .sketch-eye { fill: none; stroke: white; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
-        .lid-stroke { stroke-width: 2.5; }
-        .pupil-scribble { fill: white; stroke: none; animation: pupil-twitch 3s infinite ease-in-out; }
-        .ink-drip { stroke: white; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; opacity: 0; }
-
-        @keyframes pupil-twitch { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.95) translate(1px, 0); } }
-
-        /* --- STAGE & VIDEO --- */
-        .stage { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; background: #000; }
-        video { width: 100%; height: 100%; object-fit: cover; display: block; -webkit-transform: translateZ(0); }
-
-        /* --- UI & BUTTONS --- */
+        /* --- UI LAYER --- */
         .ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .hero-title { font-size: clamp(3rem, 10vw, 8rem); font-weight: 900; text-align: center; line-height: 0.9; color: white; text-shadow: 0 0 30px rgba(255,255,255,0.3); mix-blend-mode: overlay; }
+        .hero-title { font-size: clamp(3rem, 12vw, 8rem); font-weight: 900; text-align: center; line-height: 0.9; color: white; text-shadow: 0 0 30px rgba(255,255,255,0.3); mix-blend-mode: overlay; }
         .scroll-hint { position: absolute; bottom: 5vh; font-size: 0.8rem; letter-spacing: 0.3em; color: white; animation: bounce 2s infinite; opacity: 0; }
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
 
-        .links-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; opacity: 0; }
+        /* --- LINKS --- */
+        .links-wrapper { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            pointer-events: none; opacity: 0; 
+        }
         .link-card { 
             width: 85%; max-width: 400px; padding: 22px 30px; margin: 10px 0; 
-            background: rgba(0, 0, 0, 0.6); border: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
-            border-radius: 18px; display: flex; justify-content: center; align-items: center; gap: 16px; 
-            text-decoration: none; color: white; font-weight: 900; font-size: 1.1rem; text-transform: uppercase; 
-            transition: background 0.3s, color 0.3s, transform 0.2s;
+            background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.25); 
+            backdrop-filter: blur(20px); border-radius: 18px; 
+            display: flex; justify-content: center; align-items: center; gap: 16px; 
+            text-decoration: none; color: white; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; 
+            transition: all 0.3s;
         }
         .link-card:hover { background: white; color: black; transform: scale(1.02); }
         .icon { width: 24px; height: 24px; fill: white; transition: fill 0.3s; }
@@ -99,28 +87,11 @@
         <div class="loading-text">Loading Downfall...</div>
     </div>
 
-    <div class="loader-container" id="interactionLayer">
-        <div class="shutter shutter-top" id="shutterTop"></div>
-        <div class="shutter shutter-bottom" id="shutterBottom"></div>
-        <div class="loader-content">
-            <div class="text-line text-upper" id="line1"></div>
-            <div class="eye-container">
-                <svg class="sketch-eye" viewBox="0 0 300 120" width="300" height="120">
-                    <path class="lid-stroke" d="M 20,70 Q 150,10 280,70" />
-                    <path class="lid-stroke" d="M 30,70 Q 150,110 270,70" />
-                    <g class="pupil-scribble" transform="translate(150, 70)">
-                        <path d="M -18,-8 L -5,-18 L 8,-12 L 18,-20 L 12,-2 L 22,8 L 5,15 L 2,25 L -10,15 L -22,5 Z" />
-                        <circle r="10" />
-                    </g>
-                    <path id="inkDrip" class="ink-drip" d="M 150,100 L 150,160" />
-                </svg>
-            </div>
-            <div class="text-line text-lower" id="line2"></div>
-        </div>
-    </div>
+    <div class="shutter shutter-top" id="shutterTop"></div>
+    <div class="shutter shutter-bottom" id="shutterBottom"></div>
 
     <div class="stage">
-        <video id="video" muted playsinline webkit-playsinline preload="auto">
+        <video id="video" muted playsinline preload="auto">
             <source src="journey.mp4" type="video/mp4">
         </video>
     </div>
@@ -144,28 +115,16 @@
             <span>Instagram</span>
         </a>
     </div>
+    <div class="flash" id="flash"></div>
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
         
         const video = document.getElementById('video');
         const batFill = document.getElementById('batFill');
-        const s1 = "Manchmal ist freier Fall gar nichts Schlechtes, oder?";
-        const s2 = "Wisch mir eine Träne weg";
 
-        // Text Splitting
-        function split(target, text) {
-            text.split(" ").forEach(w => {
-                let s = document.createElement("span");
-                s.innerText = w; s.className = "word";
-                target.appendChild(s);
-                target.appendChild(document.createTextNode(" "));
-            });
-        }
-        split(document.getElementById('line1'), s1);
-        split(document.getElementById('line2'), s2);
-
-        // --- 1. BATTERY LOADING ---
+        // --- 1. BATTERY LOADING LOGIC ---
+        // Füllt den Balken gleichmäßig basierend auf Ladezustand + Zeit
         let loadProgress = 0;
         const loadSim = setInterval(() => {
             if(loadProgress < 90) {
@@ -174,78 +133,77 @@
             }
         }, 200);
 
+        // Prüft, ob Seite und Video bereit sind
         window.addEventListener('load', () => {
             const check = setInterval(() => {
                 if(video.readyState >= 3) {
                     clearInterval(loadSim); clearInterval(check);
-                    gsap.to(batFill, { width: "100%", duration: 0.4, onComplete: startIntro });
+                    gsap.to(batFill, { width: "100%", duration: 0.4, onComplete: triggerOpen });
                 }
             }, 100);
         });
 
-        // --- 2. MANGA EYE INTRO ---
-        function startIntro() {
-            gsap.to("#batteryLayer", { opacity: 0, duration: 0.6, onComplete: () => {
-                document.getElementById('batteryLayer').style.display = "none";
-                gsap.set("#interactionLayer", { visibility: "visible", opacity: 1 });
-                
-                let introTl = gsap.timeline();
-                introTl.to("#line1 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.1 });
-                introTl.to(".eye-container", { opacity: 1, duration: 1 }, "-=0.5");
-                introTl.to("#line2 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.1 }, "-=0.5");
-                introTl.to("#inkDrip", { strokeDashoffset: 0, opacity: 1, duration: 2.5, ease: "power2.inOut", onComplete: enableInteraction });
-            }});
-        }
+        // --- 2. TRANSITION (SHUTTERS ÖFFNEN) ---
+        let hasOpened = false;
+        function triggerOpen() {
+            if(hasOpened) return;
+            hasOpened = true;
 
-        // --- 3. INTERACTION ---
-        function enableInteraction() {
-            const trigger = () => {
-                window.removeEventListener('click', trigger);
-                window.removeEventListener('touchstart', trigger);
-                
-                video.play().then(() => video.pause()); // Mobil-Video-Aktivierung
+            // Video für mobile Browser kurz anstoßen
+            video.play().then(() => video.pause()).catch(e => {});
 
-                let tl = gsap.timeline({
-                    onComplete: () => {
-                        document.body.style.overflow = "auto";
-                        document.body.style.height = "500vh";
-                        initScroll();
-                    }
-                });
-                tl.to(".loader-content", { scale: 1.5, opacity: 0, filter: "blur(20px)", duration: 0.8 });
-                tl.to("#shutterTop", { yPercent: -100, duration: 1.2, ease: "expo.inOut" }, "-=0.4");
-                tl.to("#shutterBottom", { yPercent: 100, duration: 1.2, ease: "expo.inOut" }, "<");
-                tl.to("#scrollHint", { opacity: 0.7, duration: 1 });
-            };
-            window.addEventListener('click', trigger);
-            window.addEventListener('touchstart', trigger);
-        }
-
-        // --- 4. SCROLL LOGIC ---
-        function initScroll() {
-            video.currentTime = 0.01;
-            
-            // Video Scrubbing Proxy
-            let proxy = { time: 0 };
-            gsap.to(proxy, {
-                time: video.duration || 10,
-                ease: "none",
-                scrollTrigger: {
-                    trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.1
-                },
-                onUpdate: () => { 
-                    if(video.readyState >= 1) video.currentTime = proxy.time; 
+            const tl = gsap.timeline({
+                onComplete: () => {
+                    document.body.style.overflow = "auto";
+                    document.body.style.height = "500vh";
+                    initScroll();
                 }
             });
 
-            // UI Transitions
+            // Akku Layer wegfaden
+            tl.to("#batteryLayer", { opacity: 0, duration: 0.8, ease: "power2.inOut" });
+            
+            // Shutter öffnen (Augen-Auf-Effekt)
+            tl.to("#shutterTop", { yPercent: -100, duration: 1.4, ease: "expo.inOut" }, "-=0.4");
+            tl.to("#shutterBottom", { yPercent: 100, duration: 1.4, ease: "expo.inOut" }, "<");
+            
+            // UI Layer & Scroll Hinweis einblenden
+            tl.to("#scrollHint", { opacity: 0.7, duration: 1 });
+        }
+
+        // --- 3. SCROLL LOGIK (WIE VORHER) ---
+        function initScroll() {
+            video.currentTime = 0.01;
+            
+            // Video Scrubbing
+            gsap.to(video, {
+                scrollTrigger: {
+                    trigger: "body",
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: 0.1
+                },
+                onUpdate: self => { 
+                    if(video.readyState >= 1) {
+                        video.currentTime = self.progress * (video.duration - 0.05); 
+                    }
+                }
+            });
+
+            // UI Übergänge
             let uiTl = gsap.timeline({ scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.5 } });
             uiTl.to("#intro", { opacity: 0, scale: 1.5, y: -100, duration: 0.2 }, 0);
             uiTl.to("#outro", { opacity: 1, pointerEvents: "all", duration: 0.2 }, 0.15);
             uiTl.to(".link-card", { opacity: 1, stagger: 0.1, duration: 0.5 }, 0.2);
         }
 
-        function nav(e, url) { e.preventDefault(); console.log("Nav to: " + url); }
+        function nav(e, url) { 
+            e.preventDefault(); 
+            gsap.to("#flash", { opacity: 1, duration: 0.5, onComplete: () => {
+                console.log("Navigiere zu: " + url);
+                // window.location.href = url;
+            }}); 
+        }
     </script>
 </body>
 </html>
