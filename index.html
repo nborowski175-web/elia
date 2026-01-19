@@ -20,22 +20,26 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* --- IMMERSIVE PORTAL LOADER --- */
-        #loadingScreen {
+        /* --- LIQUID LOADER --- */
+        #loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000;
             z-index: 10000;
             display: flex; justify-content: center; align-items: center;
-            overflow: hidden;
         }
 
-        #portalCanvas {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        .liquid-shape {
+            width: 80px; height: 80px;
+            background: #fff;
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+            filter: blur(2px);
+            box-shadow: 0 0 40px rgba(255,255,255,0.4);
+            will-change: transform, border-radius;
         }
 
         /* --- VIDEO STAGE --- */
         .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-        video { width: 100%; height: 100%; object-fit: cover; opacity: 0; display: block; }
+        video { width: 100%; height: 100%; object-fit: cover; opacity: 0; display: block; will-change: transform; }
 
         .flash {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -45,8 +49,8 @@
 </head>
 <body>
 
-    <div id="loadingScreen">
-        <canvas id="portalCanvas"></canvas>
+    <div id="loader">
+        <div class="liquid-shape" id="shape"></div>
     </div>
 
     <div class="flash" id="flash"></div>
@@ -59,80 +63,67 @@
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
-        const canvas = document.getElementById('portalCanvas');
-        const ctx = canvas.getContext('2d');
+        const shape = document.getElementById('shape');
         const video = document.getElementById('video');
-        
-        let particles = [];
-        let loaded = false;
 
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        class Particle {
-            constructor() {
-                this.reset();
-            }
-            reset() {
-                this.x = (Math.random() - 0.5) * canvas.width;
-                this.y = (Math.random() - 0.5) * canvas.height;
-                this.z = Math.random() * canvas.width;
-                this.o = Math.random();
-            }
-            update() {
-                this.z -= loaded ? 20 : 2; // Beschleunigt massiv, wenn geladen
-                if (this.z <= 0) this.reset();
-            }
-            draw() {
-                let x = (this.x / this.z) * canvas.width + canvas.width / 2;
-                let y = (this.y / this.z) * canvas.height + canvas.height / 2;
-                let r = (1 - this.z / canvas.width) * 3;
-                
-                ctx.beginPath();
-                ctx.fillStyle = `rgba(255, 255, 255, ${1 - this.z / canvas.width})`;
-                ctx.arc(x, y, r, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        for(let i=0; i<300; i++) particles.push(new Particle());
-
-        function animate() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => { p.update(); p.draw(); });
-            requestAnimationFrame(animate);
-        }
-        animate();
-
-        // Simulation der Ladezeit & Transition
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                loaded = true;
-                const tl = gsap.timeline({
-                    onComplete: () => {
-                        document.getElementById('loadingScreen').style.display = "none";
-                        document.body.style.overflow = "auto";
-                        document.body.style.height = "500vh";
-                        initScroll();
-                    }
-                });
-
-                tl.to("#flash", { opacity: 1, duration: 0.4, ease: "power2.in", delay: 1 });
-                tl.set(video, { opacity: 1 });
-                tl.to("#flash", { opacity: 0, duration: 1.5 });
-            }, 3000);
+        // Smooth Organic Animation
+        gsap.to(shape, {
+            borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
+            duration: 2.5,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut"
         });
 
+        gsap.to(shape, {
+            scale: 1.1,
+            duration: 1.8,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut"
+        });
+
+        // Fast Load & Transition
+        const handleLoad = () => {
+            const tl = gsap.timeline({
+                delay: 0.5, // Kleiner Moment für die Ästhetik
+                onComplete: () => {
+                    document.getElementById('loader').style.display = "none";
+                    document.body.style.overflow = "auto";
+                    document.body.style.height = "500vh"; // Länge für flüssiges Scrollen
+                    initScroll();
+                }
+            });
+
+            tl.to(shape, { scale: 30, duration: 0.8, ease: "expo.in" });
+            tl.to("#flash", { opacity: 1, duration: 0.2 }, "-=0.2");
+            tl.set(video, { opacity: 1 });
+            tl.to("#flash", { opacity: 0, duration: 0.8 });
+        };
+
+        // Prüfen ob Video geladen ist
+        if (video.readyState >= 3) {
+            handleLoad();
+        } else {
+            video.addEventListener('canplaythrough', handleLoad, { once: true });
+        }
+
         function initScroll() {
-            if(video.readyState >= 1) video.currentTime = 0.01;
-            gsap.to(video, {
-                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1 },
-                onUpdate: self => { if(video.readyState >= 1) video.currentTime = self.progress * (video.duration - 0.05); }
+            // Video-Interaktion vorbereiten
+            video.play().then(() => video.pause());
+            
+            // Hochperformantes Scroll-Mapping
+            ScrollTrigger.create({
+                trigger: "body",
+                start: "top top",
+                end: "bottom bottom",
+                scrub: 0.1, // Minimale Verzögerung für extreme Smoothie-Haptik
+                onUpdate: (self) => {
+                    if (video.duration) {
+                        // Präzise Berechnung ohne Ruckler
+                        video.currentTime = self.progress * (video.duration - 0.05);
+                    }
+                }
             });
         }
     </script>
