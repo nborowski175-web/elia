@@ -7,7 +7,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet">
 
     <style>
         :root { --bg-color: #000000; }
@@ -16,149 +16,76 @@
         body {
             background-color: var(--bg-color);
             font-family: 'Inter', sans-serif;
-            height: 100vh; /* Blockiert */
-            overflow: hidden; /* Scrollen verboten */
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
             margin: 0;
-            cursor: default;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* --- LOADER CONTAINER --- */
-        .loader-container {
+        /* --- STAGE 1: MINIMAL BATTERY LOADER --- */
+        #batteryLayer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 9999;
+            z-index: 10000; background: #000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: transparent;
-            touch-action: none;
         }
+        .battery-box {
+            width: 70px; height: 35px; border: 2px solid #fff; border-radius: 5px;
+            position: relative; padding: 2px;
+        }
+        .battery-box::after {
+            content: ''; position: absolute; right: -7px; top: 9px;
+            width: 4px; height: 13px; background: #fff; border-radius: 0 2px 2px 0;
+        }
+        .battery-fill { width: 0%; height: 100%; background: #fff; border-radius: 1px; will-change: width; }
+        .loading-text { color: white; margin-top: 15px; font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; font-weight: 400; opacity: 0.6; }
 
-        /* SHUTTERS */
+        /* --- STAGE 2: SHUTTERS (EYE EFFECT) --- */
         .shutter {
-            position: absolute; left: 0; width: 100%; height: 50.5%; 
-            background: #000;
-            z-index: 1;
-            will-change: transform;
+            position: fixed; left: 0; width: 100%; height: 50.5%; 
+            background: #000; z-index: 9999; will-change: transform;
         }
-        .shutter-top { top: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .shutter-bottom { bottom: 0; border-top: 1px solid rgba(255,255,255,0.05); }
+        .shutter-top { top: 0; }
+        .shutter-bottom { bottom: 0; }
 
-        /* CONTENT */
-        .loader-content {
-            z-index: 10;
-            position: relative;
-            width: 100%; height: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+        /* --- STAGE 3: VIDEO --- */
+        .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background: #000; }
+        video { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-        /* TEXT */
-        .text-line { color: white; font-weight: 600; text-align: center; z-index: 20; }
-        .text-upper { font-size: clamp(1rem, 3vw, 1.4rem); opacity: 0.7; margin-bottom: 40px; }
-        .text-lower { font-size: clamp(0.9rem, 2vw, 1.2rem); font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-top: 40px; }
-        .word { display: inline-block; opacity: 0; filter: blur(5px); transform: translateY(10px); }
-
-        /* --- BATTERY LOADER --- */
-        .battery-container {
-            position: relative;
-            width: 170px;
-            height: 90px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            filter: drop-shadow(0 0 8px rgba(255,255,255,0.15));
-        }
-
-        .battery-svg {
-            overflow: visible;
-        }
-
-        .battery-body {
-            fill: none;
-            stroke: white;
-            stroke-width: 2;
-            opacity: 0.9;
-            filter: blur(0.3px);
-        }
-
-        .battery-cap {
-            fill: white;
-            opacity: 0.9;
-        }
-
-        .battery-fill {
-            fill: white;
-            opacity: 0.9;
-            transform-origin: left center;
-            animation: battery-charge 2.2s infinite ease-in-out;
-        }
-
-        .battery-bolt {
-            fill: none;
-            stroke: white;
-            stroke-width: 2;
-            stroke-linejoin: round;
-            opacity: 0.65;
-            animation: bolt-flicker 1.2s infinite ease-in-out;
-        }
-
-        @keyframes battery-charge {
-            0%   { transform: scaleX(0.05); opacity: 0.25; }
-            40%  { transform: scaleX(0.55); opacity: 0.85; }
-            75%  { transform: scaleX(0.95); opacity: 0.95; }
-            100% { transform: scaleX(0.05); opacity: 0.25; }
-        }
-
-        @keyframes bolt-flicker {
-            0%, 100% { opacity: 0.35; transform: scale(1); }
-            50%      { opacity: 0.9;  transform: scale(1.03); }
-        }
-
-        /* --- STAGE --- */
-        .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; background: #000; }
-        video { width: 100%; height: 100%; object-fit: cover; opacity: 1; display: block; transform: translate3d(0, 0, 0); }
-
-        /* --- UI LAYER --- */
+        /* --- UI OVERLAY --- */
         .ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .hero-title { font-size: clamp(3rem, 12vw, 8rem); font-weight: 900; text-align: center; line-height: 0.9; color: white; text-shadow: 0 0 30px rgba(255,255,255,0.3); mix-blend-mode: overlay; }
-        .scroll-hint { position: absolute; bottom: 5vh; font-size: 0.8rem; letter-spacing: 0.3em; color: white; animation: bounce 2s infinite; opacity: 0; }
-        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
+        .hero-title { font-size: clamp(3rem, 10vw, 8rem); font-weight: 900; text-align: center; line-height: 0.9; color: white; text-shadow: 0 0 40px rgba(255,255,255,0.2); mix-blend-mode: overlay; }
+        .scroll-hint { position: absolute; bottom: 8vh; font-size: 0.7rem; letter-spacing: 0.4em; color: white; opacity: 0; }
 
-        /* --- LINKS --- */
-        .links-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; perspective: 1000px; pointer-events: none; opacity: 0; }
-        .link-card { width: 85%; max-width: 400px; padding: 20px 24px; margin: 8px 0; background: rgba(255, 255, 255, 0.25); border: 1px solid rgba(255, 255, 255, 0.4); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transform: translate3d(0,0,0); backface-visibility: hidden; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: white; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; opacity: 0; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); transition: background 0.3s; }
-        .link-card:hover { background: white; color: black; box-shadow: 0 10px 40px rgba(255,255,255,0.3); }
-        .link-content { display: flex; align-items: center; gap: 15px; }
-        .icon { width: 24px; height: 24px; fill: white; transition: fill 0.2s; }
+        /* --- FINAL LINKS --- */
+        .links-wrapper { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            pointer-events: none; opacity: 0; 
+        }
+        .link-card { 
+            width: 90%; max-width: 380px; padding: 22px 30px; margin: 10px 0; 
+            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
+            border-radius: 20px; display: flex; justify-content: center; align-items: center; gap: 15px; 
+            text-decoration: none; color: white; font-weight: 900; font-size: 1.1rem; text-transform: uppercase; 
+            transition: all 0.3s ease;
+        }
+        .link-card:hover { background: #fff; color: #000; transform: translateY(-3px); }
+        .icon { width: 24px; height: 24px; fill: white; transition: fill 0.3s; }
         .link-card:hover .icon { fill: black; }
-        .flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; transform: scaleY(0); transform-origin: bottom; pointer-events: none; }
+        .flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10001; opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <div class="loader-container" id="interactionLayer">
-        <div class="shutter shutter-top" id="shutterTop"></div>
-        <div class="shutter shutter-bottom" id="shutterBottom"></div>
-        
-        <div class="loader-content" id="loaderContent">
-            <div class="text-line text-upper" id="line1"></div>
-            
-            <div class="battery-container" id="eyeIcon">
-                <svg class="battery-svg" viewBox="0 0 220 120" width="200" height="120">
-                    <rect class="battery-body" x="20" y="30" width="160" height="60" rx="10" ry="10"></rect>
-                    <rect class="battery-cap" x="182" y="48" width="14" height="24" rx="4" ry="4"></rect>
-
-                    <!-- Fill (animated via scaleX from left) -->
-                    <g transform="translate(0,0)">
-                        <rect class="battery-fill" x="28" y="38" width="144" height="44" rx="7" ry="7"></rect>
-                    </g>
-
-                    <!-- Bolt -->
-                    <path class="battery-bolt" d="M110 38 L94 66 L110 66 L100 92 L126 56 L110 56 Z"></path>
-                </svg>
-            </div>
-
-            <div class="text-line text-lower" id="line2"></div>
-        </div>
+    <div id="batteryLayer">
+        <div class="battery-box"><div class="battery-fill" id="batFill"></div></div>
+        <div class="loading-text">Loading Downfall</div>
     </div>
+
+    <div class="shutter shutter-top" id="shutterTop"></div>
+    <div class="shutter shutter-bottom" id="shutterBottom"></div>
+    <div class="flash" id="flash"></div>
 
     <div class="stage">
         <video id="video" muted playsinline preload="auto">
@@ -172,99 +99,87 @@
     </div>
 
     <div class="links-wrapper" id="outro">
-        <a href="#" class="link-card" onclick="nav(event, 'https://spotify.com')"><div class="link-content"><svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg><span>Spotify</span></div><span>↗</span></a>
-        <a href="#" class="link-card" onclick="nav(event, 'https://music.apple.com')"><div class="link-content"><svg class="icon" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.68-.83 1.14-1.99.94-3.14-1.02.04-2.22.68-2.93 1.52-.63.74-1.22 1.92-1.07 3.07 1.15.09 2.32-.59 3.06-1.45"/></svg><span>Apple Music</span></div><span>↗</span></a>
-        <a href="#" class="link-card" onclick="nav(event, 'https://youtube.com')"><div class="link-content"><svg class="icon" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg><span>YouTube</span></div><span>↗</span></a>
-        <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')"><div class="link-content"><svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg><span>Instagram</span></div><span>↗</span></a>
+        <a href="#" class="link-card" onclick="nav(event, 'spotify')">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg>
+            <span>Spotify</span>
+        </a>
+        <a href="#" class="link-card" onclick="nav(event, 'apple')">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.68-.83 1.14-1.99.94-3.14-1.02.04-2.22.68-2.93 1.52-.63.74-1.22 1.92-1.07 3.07 1.15.09 2.32-.59 3.06-1.45"/></svg>
+            <span>Apple Music</span>
+        </a>
+        <a href="#" class="link-card" onclick="nav(event, 'insta')">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
+            <span>Instagram</span>
+        </a>
     </div>
-    <div class="flash"></div>
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
         
         const video = document.getElementById('video');
-        const line1 = document.getElementById('line1');
-        const line2 = document.getElementById('line2');
-        const interactionLayer = document.getElementById('interactionLayer');
+        const batFill = document.getElementById('batFill');
 
-        // --- 1. TEXT SETUP ---
-        const s1 = "Manchmal ist freier Fall gar nichts Schlechtes, oder?";
-        const s2 = "Wisch mir die Tränen weg";
+        // --- 1. SMART LOADER ---
+        let prog = 0;
+        const loadTicks = setInterval(() => {
+            if(prog < 92) {
+                prog += Math.random() * 3;
+                gsap.to(batFill, { width: prog + "%", duration: 0.2 });
+            }
+        }, 100);
 
-        function splitText(target, text) {
-            text.split(" ").forEach(word => {
-                let span = document.createElement("span");
-                span.innerText = word;
-                span.classList.add("word");
-                target.appendChild(span);
-            });
-        }
-        splitText(line1, s1);
-        splitText(line2, s2);
+        window.addEventListener('load', () => {
+            const check = setInterval(() => {
+                if(video.readyState >= 3) {
+                    clearInterval(loadTicks); clearInterval(check);
+                    gsap.to(batFill, { width: "100%", duration: 0.3, onComplete: reveal });
+                }
+            }, 100);
+        });
 
-        // --- 2. INTRO ANIMATION (Sofort) ---
-        let introTl = gsap.timeline();
-        introTl.to("#line1 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.1, duration: 0.8 });
-        introTl.to("#eyeIcon", { opacity: 1, duration: 1.5, ease: "power2.inOut" }, "-=0.4");
-        introTl.to("#line2 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.05, duration: 0.6 }, "-=0.5");
-
-        // --- 3. DIE INTERAKTION (Wipe/Scroll/Tap) ---
-        let hasInteracted = false;
-
-        function triggerOpen() {
-            if(hasInteracted) return;
-            hasInteracted = true;
-
-            // iOS Hack
-            if (video.paused) { video.play().then(() => video.pause()).catch(e => {}); }
-
+        // --- 2. TRANSITION ---
+        function reveal() {
+            video.play().then(() => video.pause()).catch(()=>{});
             const tl = gsap.timeline({
                 onComplete: () => {
-                    // SCROLL FREIGABE NACH DEM EFFEKT
-                    document.body.style.height = "500vh";
                     document.body.style.overflow = "auto"; 
-                    interactionLayer.style.display = "none";
+                    document.body.style.height = "500vh";
+                    document.getElementById('batteryLayer').style.display = "none";
                     initScroll();
                 }
             });
-
-            // 1. Content weg
-            tl.to(".loader-content", { scale: 2, opacity: 0, filter: "blur(20px)", duration: 0.6, ease: "power2.in" });
-            
-            // 2. Blenden auf
-            tl.to("#shutterTop", { yPercent: -100, duration: 1.1, ease: "expo.inOut" }, "-=0.3");
-            tl.to("#shutterBottom", { yPercent: 100, duration: 1.1, ease: "expo.inOut" }, "<");
-            
-            // 3. Hinweis
-            tl.to("#scrollHint", { opacity: 0.7, duration: 1, delay: 0.2 });
+            tl.to("#batteryLayer", { opacity: 0, duration: 0.6 });
+            tl.to("#shutterTop", { yPercent: -100, duration: 1.4, ease: "expo.inOut" }, "-=0.2");
+            tl.to("#shutterBottom", { yPercent: 100, duration: 1.4, ease: "expo.inOut" }, "<");
+            tl.to("#scrollHint", { opacity: 0.5, duration: 1 });
         }
 
-        // Listener für alle "Wisch"-ähnlichen Aktionen
-        window.addEventListener('click', triggerOpen);
-        window.addEventListener('touchstart', triggerOpen);
-        window.addEventListener('wheel', triggerOpen);
-        window.addEventListener('scroll', triggerOpen); // Fallback
-
-        // --- 4. SCROLL LOGIK ---
+        // --- 3. SCROLL & PERFORMANCE ---
         function initScroll() {
-            video.currentTime = 0.01;
+            // High-Performance Scrubbing
+            gsap.to(video, {
+                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.05 },
+                onUpdate: self => {
+                    if (video.duration) video.currentTime = self.progress * (video.duration - 0.05);
+                }
+            });
 
-            let uiTl = gsap.timeline({ scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.5 } });
-            uiTl.to("#intro", { scale: 1.5, opacity: 0, filter: "blur(20px)", duration: 0.1 }, 0);
-            uiTl.to("#outro", { opacity: 1, pointerEvents: "all", duration: 0.2 }, 0.15);
-            uiTl.to(".link-card", { y: 0, scale: 1, opacity: 1, stagger: 0.1, duration: 0.8, ease: "back.out(1.2)", force3D: true }, 0.20);
+            // UI Elements
+            gsap.to("#intro", {
+                scrollTrigger: { trigger: "body", start: "top top", end: "30% top", scrub: true },
+                y: -100, opacity: 0, filter: "blur(20px)"
+            });
 
-            // VIDEO PROXY
-            const dur = video.duration || 10;
-            let proxy = { time: 0 };
-            gsap.to(proxy, {
-                time: dur, ease: "none",
-                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1.2 },
-                onUpdate: () => { if(video.readyState >= 1) video.currentTime = proxy.time; }
+            gsap.to("#outro", {
+                scrollTrigger: { trigger: "body", start: "75% top", end: "bottom bottom", scrub: true },
+                opacity: 1, pointerEvents: "all"
             });
         }
 
-        function nav(e, url) { e.preventDefault(); gsap.to(".flash", { scaleY: 1, duration: 0.5, ease: "power2.inOut", onComplete: () => window.location.href = url }); }
+        function nav(e, url) { 
+            e.preventDefault(); 
+            gsap.to("#flash", { opacity: 1, duration: 0.4, onComplete: () => console.log("Nav: " + url) }); 
+        }
     </script>
 </body>
 </html>
