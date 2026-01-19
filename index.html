@@ -7,7 +7,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
 
     <style>
         :root { --bg-color: #000000; }
@@ -19,122 +19,72 @@
             height: 100vh;
             overflow: hidden;
             margin: 0;
-            cursor: default;
-            -webkit-font-smoothing: antialiased;
-            overscroll-behavior: none; 
+            overscroll-behavior: none;
         }
 
+        /* --- ABSTRACT LOADER --- */
         .loader-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: transparent;
-            touch-action: none;
-            will-change: transform, opacity;
+            background: #000;
         }
 
-        .shutter {
-            position: absolute; left: 0; width: 100%; height: 50.5%; 
-            background: #000;
-            z-index: 1;
-            will-change: transform;
+        /* Der pulsierende Lichtpunkt */
+        .pulse-orb {
+            width: 4px;
+            height: 4px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 20px 5px rgba(255,255,255,0.8), 
+                        0 0 60px 20px rgba(255,255,255,0.2);
+            margin-bottom: 40px;
+            opacity: 0;
         }
-        .shutter-top { top: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .shutter-bottom { bottom: 0; border-top: 1px solid rgba(255,255,255,0.05); }
 
         .loader-content {
+            text-align: center;
             z-index: 10;
-            position: relative;
-            width: 90%; 
-            max-width: 600px;
-            height: 85%; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: space-between;
-            padding: 40px 0;
-            pointer-events: none;
         }
 
         .text-line {
             color: white;
             font-weight: 600;
-            text-align: center;
-            z-index: 20;
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; 
-        }
-        .text-upper { font-size: clamp(1rem, 3vw, 1.4rem); opacity: 0.8; }
-        .text-lower { font-size: clamp(1.2rem, 3.5vw, 1.6rem); opacity: 0.95; }
-        .word { display: inline-block; opacity: 0; filter: blur(5px); transform: translateY(10px); }
-
-        .eye-container {
-            position: relative;
-            width: 320px; 
-            height: auto;
-            display: flex; justify-content: center; align-items: center;
-            opacity: 0;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            font-size: clamp(0.8rem, 2.5vw, 1.1rem);
         }
 
-        .grunge-eye-svg { overflow: visible; }
-        .ink-filter { filter: url(#inkGrunge); }
-
-        .eye-static {
-            stroke: white; fill: none; stroke-linecap: round; stroke-linejoin: round;
-        }
-        .iris-detail { fill: white; stroke: none; }
-
-        /* DIE TRÄNE: Links positioniert mit Anstauung-Logik */
-        #finalTear {
-            stroke: white;
-            fill: none;
-            stroke-linecap: round;
-            stroke-dasharray: 400;
-            stroke-dashoffset: 400;
-            opacity: 0;
+        .word { 
+            display: inline-block; 
+            opacity: 0; 
+            filter: blur(8px); 
+            transform: translateY(5px); 
         }
 
-        .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; background: #000; }
-        video { width: 100%; height: 100%; object-fit: cover; opacity: 1; display: block; }
+        /* --- VIDEO STAGE --- */
+        .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        video { width: 100%; height: 100%; object-fit: cover; opacity: 1; }
+
+        .ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .hero-title { font-size: clamp(3rem, 12vw, 8rem); font-weight: 900; text-align: center; color: white; mix-blend-mode: overlay; opacity: 0; }
+        
+        .flash-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 10000; pointer-events: none; opacity: 0;
+        }
     </style>
 </head>
 <body>
 
-    <div class="loader-container" id="interactionLayer">
-        <div class="shutter shutter-top" id="shutterTop"></div>
-        <div class="shutter shutter-bottom" id="shutterBottom"></div>
-        
-        <div class="loader-content" id="loaderContent">
-            <div class="text-line text-upper" id="line1"></div>
-            
-            <div class="eye-container" id="eyeIcon">
-                <svg class="grunge-eye-svg" viewBox="0 0 300 350" width="300" height="350">
-                    <defs>
-                        <filter id="inkGrunge" x="-30%" y="-30%" width="160%" height="160%">
-                            <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="6" result="noise" />
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="18" xChannelSelector="R" yChannelSelector="G" />
-                        </filter>
-                    </defs>
-                    
-                    <g class="ink-filter">
-                        <g class="eye-static" stroke-width="8">
-                            <path d="M 30,120 Q 150,20 270,120" />
-                            <path d="M 40,100 Q 150,0 260,100" stroke-width="4" opacity="0.7" /> 
-                            <path d="M 40,140 Q 150,200 260,140" stroke-width="6" />
-                            <g transform="translate(150, 130)">
-                                <circle r="40" stroke-width="4" />
-                                <circle class="iris-detail" r="15" /> 
-                                <circle class="iris-detail" cx="15" cy="-15" r="8" /> 
-                            </g>
-                        </g>
-
-                        <path id="finalTear" d="M 65,135 Q 55,220 75,260 T 70,310" />
-                    </g>
-                </svg>
-            </div>
-
-            <div class="text-line text-lower" id="line2"></div>
+    <div class="loader-container" id="loader">
+        <div class="pulse-orb" id="orb"></div>
+        <div class="loader-content">
+            <div class="text-line" id="loaderText"></div>
         </div>
     </div>
+
+    <div class="flash-overlay" id="flash"></div>
 
     <div class="stage">
         <video id="video" muted playsinline preload="auto">
@@ -142,83 +92,68 @@
         </video>
     </div>
 
+    <div class="ui-layer" id="ui">
+        <h1 class="hero-title" id="mainTitle">DIE REISE<br>BEGINNT</h1>
+    </div>
+
     <script>
-        gsap.registerPlugin(ScrollTrigger);
+        const loaderText = document.getElementById('loaderText');
+        const orb = document.getElementById('orb');
+        const phrase = "Wisch alles weg und DU wirst schon sehen!";
+
+        // Text Setup
+        phrase.split(" ").forEach(word => {
+            let span = document.createElement("span");
+            span.innerText = word + " ";
+            span.classList.add("word");
+            if(word === "DU") span.style.fontWeight = "900";
+            loaderText.appendChild(span);
+        });
+
+        // Intro Animation
+        let tl = gsap.timeline();
         
-        const line1 = document.getElementById('line1');
-        const line2 = document.getElementById('line2');
-        const video = document.getElementById('video');
+        tl.to(orb, { opacity: 1, duration: 2, ease: "power2.inOut" });
+        tl.to(orb, { scale: 2.5, duration: 1.5, repeat: -1, yoyo: true, ease: "sine.inOut" }, 0);
+        
+        tl.to(".word", { 
+            opacity: 1, filter: "blur(0px)", y: 0, 
+            stagger: 0.1, duration: 1, ease: "power2.out" 
+        }, "-=1");
 
-        const s1 = "Manchmal ist freier Fall gar nichts Schlechtes, oder?";
-        const s2 = "Wisch die Träne weg und DU wirst schon sehen!";
+        // Click to Enter Animation
+        window.addEventListener('mousedown', enterSite);
+        window.addEventListener('touchstart', enterSite);
 
-        function splitText(target, text) {
-            text.split(" ").forEach(word => {
-                let span = document.createElement("span");
-                span.innerText = word;
-                span.classList.add("word");
-                if(word === "DU") span.style.fontWeight = "800";
-                target.appendChild(span);
-            });
-        }
-        splitText(line1, s1);
-        splitText(line2, s2);
+        function enterSite() {
+            window.removeEventListener('mousedown', enterSite);
+            const video = document.getElementById('video');
+            video.play().then(() => video.pause());
 
-        let introTl = gsap.timeline();
-        introTl.to("#line1 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.1, duration: 0.8 });
-        introTl.to("#eyeIcon", { opacity: 1, duration: 1.5, ease: "power2.inOut" }, "-=0.4");
-        introTl.to("#line2 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.06, duration: 0.7 }, "-=0.5");
-
-        // DIE TRÄNE: Startet dick (Anstauung), wird dünn, am Ende wieder leicht rundlich
-        introTl.to("#finalTear", {
-            strokeDashoffset: 0, 
-            opacity: 1,
-            duration: 4,
-            ease: "power2.inOut",
-            onUpdate: function() {
-                let progress = this.progress();
-                // Stauchung: Startet bei 22px, verjüngt sich auf 7px, endet bei 12px (rundlich)
-                let dynamicWidth;
-                if (progress < 0.7) {
-                    dynamicWidth = 22 - (progress * 21.4); // Von 22 auf 7
-                } else {
-                    dynamicWidth = 7 + ((progress - 0.7) * 16.6); // Von 7 wieder hoch auf ca. 12
-                }
-                gsap.set("#finalTear", { strokeWidth: dynamicWidth });
-            },
-            onComplete: enableInteraction
-        }, "+=0.2"); 
-
-        function enableInteraction() {
-            window.addEventListener('click', triggerOpen);
-            window.addEventListener('touchstart', triggerOpen, { passive: true });
-            window.addEventListener('wheel', triggerOpen, { passive: true });
-            window.addEventListener('scroll', triggerOpen, { passive: true });
-        }
-
-        let hasInteracted = false;
-        function triggerOpen() {
-            if(hasInteracted) return;
-            hasInteracted = true;
-            if (video.paused) { video.play().then(() => video.pause()).catch(e => {}); }
-            const tl = gsap.timeline({
+            let exitTl = gsap.timeline({
                 onComplete: () => {
+                    document.getElementById('loader').style.display = "none";
+                    document.body.style.overflow = "auto";
                     document.body.style.height = "500vh";
-                    document.body.style.overflow = "auto"; 
-                    document.getElementById('interactionLayer').style.display = "none";
                     initScroll();
                 }
             });
-            tl.to(".loader-content", { scale: 2, opacity: 0, filter: "blur(20px)", duration: 0.6 });
-            tl.to("#shutterTop", { yPercent: -100, duration: 1.1, ease: "expo.inOut" }, "-=0.3");
-            tl.to("#shutterBottom", { yPercent: 100, duration: 1.1, ease: "expo.inOut" }, "<");
+
+            // Orb explodiert weiß
+            exitTl.to(orb, { scale: 500, duration: 1, ease: "expo.in" });
+            exitTl.to("#flash", { opacity: 1, duration: 0.4 }, "-=0.2");
+            exitTl.to("#loader", { opacity: 0, duration: 0.5 });
+            exitTl.to("#flash", { opacity: 0, duration: 1 });
+            exitTl.to("#mainTitle", { opacity: 1, y: -20, duration: 1 }, "-=0.5");
         }
 
         function initScroll() {
-            if(video.readyState >= 1) video.currentTime = 0.01;
+            const video = document.getElementById('video');
             gsap.to(video, {
-                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1.2 },
-                onUpdate: self => { if(video.readyState >= 1) video.currentTime = self.progress * (video.duration - 0.05); }
+                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1 },
+                onUpdate: self => {
+                    if(video.readyState >= 1) video.currentTime = self.progress * (video.duration - 0.05);
+                }
             });
         }
     </script>
