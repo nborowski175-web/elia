@@ -19,56 +19,46 @@
             height: 100vh;
             overflow: hidden;
             margin: 0;
-            overscroll-behavior: none;
+            cursor: pointer;
         }
 
-        /* --- ABSTRACT LOADER --- */
-        .loader-container {
+        /* --- STARFIELD CANVAS --- */
+        #starfield {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1;
             background: #000;
         }
 
-        /* Der pulsierende Lichtpunkt */
-        .pulse-orb {
-            width: 4px;
-            height: 4px;
-            background: #fff;
-            border-radius: 50%;
-            box-shadow: 0 0 20px 5px rgba(255,255,255,0.8), 
-                        0 0 60px 20px rgba(255,255,255,0.2);
-            margin-bottom: 40px;
-            opacity: 0;
-        }
-
         .loader-content {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
             text-align: center;
             z-index: 10;
+            width: 90%;
+            pointer-events: none;
         }
 
         .text-line {
             color: white;
             font-weight: 600;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.2em;
             text-transform: uppercase;
-            font-size: clamp(0.8rem, 2.5vw, 1.1rem);
+            font-size: clamp(0.7rem, 2.5vw, 1rem);
+            text-shadow: 0 0 20px rgba(255,255,255,0.5);
         }
 
         .word { 
             display: inline-block; 
             opacity: 0; 
-            filter: blur(8px); 
-            transform: translateY(5px); 
+            filter: blur(10px); 
+            transform: translateY(10px); 
         }
 
-        /* --- VIDEO STAGE --- */
-        .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
-        video { width: 100%; height: 100%; object-fit: cover; opacity: 1; }
+        /* --- STAGE --- */
+        .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
+        video { width: 100%; height: 100%; object-fit: cover; opacity: 0; }
 
-        .ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .hero-title { font-size: clamp(3rem, 12vw, 8rem); font-weight: 900; text-align: center; color: white; mix-blend-mode: overlay; opacity: 0; }
-        
         .flash-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: white; z-index: 10000; pointer-events: none; opacity: 0;
@@ -77,11 +67,10 @@
 </head>
 <body>
 
-    <div class="loader-container" id="loader">
-        <div class="pulse-orb" id="orb"></div>
-        <div class="loader-content">
-            <div class="text-line" id="loaderText"></div>
-        </div>
+    <canvas id="starfield"></canvas>
+
+    <div class="loader-content">
+        <div class="text-line" id="loaderText"></div>
     </div>
 
     <div class="flash-overlay" id="flash"></div>
@@ -92,16 +81,63 @@
         </video>
     </div>
 
-    <div class="ui-layer" id="ui">
-        <h1 class="hero-title" id="mainTitle">DIE REISE<br>BEGINNT</h1>
-    </div>
-
     <script>
-        const loaderText = document.getElementById('loaderText');
-        const orb = document.getElementById('orb');
-        const phrase = "Wisch alles weg und DU wirst schon sehen!";
+        // --- STARFIELD LOGIC ---
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+        let stars = [];
+        let numStars = 400;
+        let speed = 0.5;
+        let warpActive = false;
 
-        // Text Setup
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        class Star {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = (Math.random() - 0.5) * canvas.width;
+                this.y = (Math.random() - 0.5) * canvas.height;
+                this.z = Math.random() * canvas.width;
+                this.px = 0; this.py = 0;
+            }
+            update() {
+                this.z -= speed;
+                if (this.z <= 0) this.reset();
+            }
+            draw() {
+                let sx = (this.x / this.z) * canvas.width + canvas.width / 2;
+                let sy = (this.y / this.z) * canvas.height + canvas.height / 2;
+                let r = (1 - this.z / canvas.width) * 2;
+                
+                ctx.beginPath();
+                ctx.fillStyle = "white";
+                ctx.arc(sx, sy, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < numStars; i++) stars.push(new Star());
+
+        function animateStars() {
+            ctx.fillStyle = warpActive ? "rgba(0,0,0,0.2)" : "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            stars.forEach(s => { s.update(); s.draw(); });
+            requestAnimationFrame(animateStars);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        animateStars();
+
+        // --- TEXT & INTRO ---
+        const phrase = "Wisch alles weg und DU wirst schon sehen!";
+        const loaderText = document.getElementById('loaderText');
+
         phrase.split(" ").forEach(word => {
             let span = document.createElement("span");
             span.innerText = word + " ";
@@ -110,45 +146,45 @@
             loaderText.appendChild(span);
         });
 
-        // Intro Animation
-        let tl = gsap.timeline();
-        
-        tl.to(orb, { opacity: 1, duration: 2, ease: "power2.inOut" });
-        tl.to(orb, { scale: 2.5, duration: 1.5, repeat: -1, yoyo: true, ease: "sine.inOut" }, 0);
-        
-        tl.to(".word", { 
+        gsap.to(".word", { 
             opacity: 1, filter: "blur(0px)", y: 0, 
-            stagger: 0.1, duration: 1, ease: "power2.out" 
-        }, "-=1");
+            stagger: 0.15, duration: 1.2, ease: "power2.out", delay: 0.5
+        });
 
-        // Click to Enter Animation
-        window.addEventListener('mousedown', enterSite);
-        window.addEventListener('touchstart', enterSite);
+        // --- INTERACTION ---
+        window.addEventListener('mousedown', startWarp);
+        window.addEventListener('touchstart', startWarp);
 
-        function enterSite() {
-            window.removeEventListener('mousedown', enterSite);
-            const video = document.getElementById('video');
-            video.play().then(() => video.pause());
+        function startWarp() {
+            window.removeEventListener('mousedown', startWarp);
+            warpActive = true;
+            
+            // Sterne beschleunigen
+            gsap.to(window, { 
+                duration: 1.5, 
+                onUpdate: () => { speed += 0.5; }, 
+                ease: "expo.in" 
+            });
 
-            let exitTl = gsap.timeline({
+            // Flash & Übergang
+            let tl = gsap.timeline({
                 onComplete: () => {
-                    document.getElementById('loader').style.display = "none";
+                    canvas.style.display = "none";
                     document.body.style.overflow = "auto";
                     document.body.style.height = "500vh";
                     initScroll();
                 }
             });
 
-            // Orb explodiert weiß
-            exitTl.to(orb, { scale: 500, duration: 1, ease: "expo.in" });
-            exitTl.to("#flash", { opacity: 1, duration: 0.4 }, "-=0.2");
-            exitTl.to("#loader", { opacity: 0, duration: 0.5 });
-            exitTl.to("#flash", { opacity: 0, duration: 1 });
-            exitTl.to("#mainTitle", { opacity: 1, y: -20, duration: 1 }, "-=0.5");
+            tl.to("#flash", { opacity: 1, duration: 0.8, ease: "power2.in", delay: 0.5 });
+            tl.to(".loader-content", { opacity: 0, duration: 0.3 }, "-=0.8");
+            tl.set("#video", { opacity: 1 });
+            tl.to("#flash", { opacity: 0, duration: 1.5 });
         }
 
         function initScroll() {
             const video = document.getElementById('video');
+            video.play().then(() => video.pause());
             gsap.to(video, {
                 scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1 },
                 onUpdate: self => {
