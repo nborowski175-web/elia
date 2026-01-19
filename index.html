@@ -15,141 +15,219 @@
         
         body {
             background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
             height: 100vh;
             overflow: hidden;
             margin: 0;
-            font-family: 'Inter', sans-serif;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* --- LIQUID LOADER --- */
-        #loader {
+        /* --- LOADING BAR SCREEN --- */
+        #loadingBarScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000;
             z-index: 10000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 0.8rem;
+            letter-spacing: 0.4em;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+
+        .bar-container {
+            width: 200px;
+            height: 2px;
+            background: rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            position: absolute; top: 0; left: 0;
+            width: 0%; height: 100%;
+            background: white;
+            box-shadow: 0 0 15px white;
+        }
+
+        /* --- CONTENT LAYER (Original Setup) --- */
+        .loader-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: transparent;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .shutter {
+            position: absolute; left: 0; width: 100%; height: 50.5%; 
+            background: #000;
+            z-index: 1;
+        }
+        .shutter-top { top: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .shutter-bottom { bottom: 0; border-top: 1px solid rgba(255,255,255,0.05); }
+
+        .loader-content {
+            z-index: 10;
+            position: relative;
+            width: 90%; max-width: 600px; height: 85%; 
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            padding: 40px 0;
+        }
+
+        .text-line { color: white; font-weight: 600; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
+        .text-upper { font-size: clamp(1rem, 3vw, 1.4rem); opacity: 0.8; }
+        .text-lower { font-size: clamp(1.2rem, 3.5vw, 1.6rem); opacity: 0.95; }
+        .word { display: inline-block; opacity: 0; filter: blur(5px); transform: translateY(10px); }
+
+        /* --- LIQUID REPLACEMENT FOR EYE --- */
+        .liquid-container {
+            width: 150px; height: 150px;
+            position: relative;
             display: flex; justify-content: center; align-items: center;
+            opacity: 0;
         }
-
-        .liquid-shape {
+        .liquid-blob {
             width: 80px; height: 80px;
-            background: #fff;
-            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+            background: white;
+            border-radius: 50%;
             filter: blur(2px);
-            box-shadow: 0 0 40px rgba(255,255,255,0.4);
-            will-change: transform, border-radius;
+            box-shadow: 0 0 30px rgba(255,255,255,0.3);
+        }
+        #liquidTear {
+            position: absolute; top: 60%; left: 50%;
+            width: 12px; height: 0px;
+            background: white;
+            border-radius: 10px;
+            transform: translateX(-50%);
+            opacity: 0;
         }
 
-        /* --- VIDEO STAGE --- */
+        /* --- STAGE & UI --- */
         .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-        video { width: 100%; height: 100%; object-fit: cover; opacity: 0; display: block; will-change: transform; }
-
-        /* --- UI ELEMENTS --- */
-        .ui-layer { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 10; pointer-events: none; 
-            display: flex; flex-direction: column; justify-content: center; align-items: center; 
-        }
+        video { width: 100%; height: 100%; object-fit: cover; opacity: 1; display: block; }
         
-        .hero-title { 
-            font-size: clamp(3rem, 12vw, 8rem); font-weight: 900; text-align: center; 
-            line-height: 0.9; color: white; opacity: 0; transform: translateY(30px);
-            text-shadow: 0 0 30px rgba(255,255,255,0.2);
-        }
-
         .links-wrapper { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
             pointer-events: none; opacity: 0; 
         }
-        
         .link-card { 
-            width: 85%; max-width: 400px; padding: 20px; margin: 10px 0; 
-            background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.2); 
-            backdrop-filter: blur(15px); border-radius: 15px; 
-            text-align: center; text-decoration: none; color: white; 
-            font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;
-            transition: 0.3s;
-        }
-        .link-card:hover { background: white; color: black; }
-
-        .flash {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; z-index: 10001; opacity: 0; pointer-events: none;
+            width: 80%; max-width: 350px; padding: 20px; margin: 10px 0; 
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); 
+            backdrop-filter: blur(15px); border-radius: 12px; color: white; 
+            text-align: center; text-decoration: none; font-weight: 800; text-transform: uppercase;
         }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="liquid-shape" id="shape"></div>
+    <div id="loadingBarScreen">
+        <div class="loading-text">LOADING DOWNFALL</div>
+        <div class="bar-container">
+            <div class="bar-fill" id="barFill"></div>
+        </div>
     </div>
 
-    <div class="flash" id="flash"></div>
+    <div class="loader-container" id="interactionLayer">
+        <div class="shutter shutter-top" id="shutterTop"></div>
+        <div class="shutter shutter-bottom" id="shutterBottom"></div>
+        
+        <div class="loader-content" id="loaderContent">
+            <div class="text-line text-upper" id="line1"></div>
+            
+            <div class="liquid-container" id="liquidIcon">
+                <div class="liquid-blob" id="blob"></div>
+                <div id="liquidTear"></div>
+            </div>
 
-    <div class="stage">
-        <video id="video" muted playsinline preload="auto">
-            <source src="journey.mp4" type="video/mp4">
-        </video>
+            <div class="text-line text-lower" id="line2"></div>
+        </div>
     </div>
 
-    <div class="ui-layer" id="introUI">
-        <h1 class="hero-title" id="mainTitle">KOMM MIT<br>AUF MEINE<br>REISE</h1>
-    </div>
+    <div class="stage"><video id="video" muted playsinline preload="auto"><source src="journey.mp4" type="video/mp4"></video></div>
 
     <div class="links-wrapper" id="outroUI">
-        <a href="https://spotify.com" target="_blank" class="link-card">Spotify</a>
-        <a href="https://instagram.com" target="_blank" class="link-card">Instagram</a>
-        <a href="https://youtube.com" target="_blank" class="link-card">YouTube</a>
+        <a href="https://spotify.com" class="link-card">Spotify</a>
+        <a href="https://instagram.com" class="link-card">Instagram</a>
     </div>
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
+        
         const video = document.getElementById('video');
+        const s1 = "Manchmal ist freier Fall gar nichts Schlechtes, oder?";
+        const s2 = "Wisch alles weg und DU wirst schon sehen!";
 
-        // Loader Animation
-        gsap.to("#shape", {
-            borderRadius: "60% 40% 30% 70% / 60% 30% 70% 40%",
-            duration: 2, repeat: -1, yoyo: true, ease: "sine.inOut"
+        function splitText(target, text) {
+            text.split(" ").forEach(word => {
+                let span = document.createElement("span");
+                span.innerText = word;
+                span.classList.add("word");
+                if(word === "DU") span.style.fontWeight = "900";
+                target.appendChild(span);
+            });
+        }
+        splitText(document.getElementById('line1'), s1);
+        splitText(document.getElementById('line2'), s2);
+
+        // 1. Loading Sequence
+        gsap.to("#barFill", {
+            width: "100%", duration: 3, ease: "power2.inOut",
+            onComplete: () => {
+                gsap.to("#loadingBarScreen", { opacity: 0, duration: 0.5, onComplete: startIntro });
+            }
         });
 
-        const handleLoad = () => {
-            const tl = gsap.timeline({
+        function startIntro() {
+            gsap.set("#interactionLayer", { opacity: 1 });
+            
+            // Liquid Blob verformt sich
+            gsap.to("#blob", {
+                borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%",
+                duration: 2, repeat: -1, yoyo: true, ease: "sine.inOut"
+            });
+
+            let introTl = gsap.timeline();
+            introTl.to("#line1 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.1 });
+            introTl.to("#liquidIcon", { opacity: 1, duration: 1 }, "-=0.5");
+            introTl.to("#line2 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.1 }, "-=0.3");
+
+            // Die "flüssige Träne"
+            introTl.to("#liquidTear", {
+                opacity: 1, height: 150, duration: 2, ease: "power2.inOut",
                 onComplete: () => {
-                    document.getElementById('loader').style.display = "none";
-                    document.body.style.overflow = "auto";
-                    document.body.style.height = "500vh";
-                    initScrollEffects();
+                    window.addEventListener('click', triggerOpen);
+                    window.addEventListener('touchstart', triggerOpen);
                 }
-            });
+            }, "+=0.2");
+        }
 
-            tl.to("#shape", { scale: 40, duration: 0.7, ease: "expo.in" });
-            tl.to("#flash", { opacity: 1, duration: 0.2 }, "-=0.2");
-            tl.set(video, { opacity: 1 });
-            tl.to("#flash", { opacity: 0, duration: 0.8 });
-            tl.to("#mainTitle", { opacity: 1, y: 0, duration: 1, ease: "power2.out" });
-        };
+        function triggerOpen() {
+            gsap.to("#loaderContent", { scale: 1.5, opacity: 0, filter: "blur(20px)", duration: 0.8 });
+            gsap.to("#shutterTop", { yPercent: -100, duration: 1.1, ease: "expo.inOut" });
+            gsap.to("#shutterBottom", { yPercent: 100, duration: 1.1, ease: "expo.inOut" });
+            document.body.style.overflow = "auto";
+            document.body.style.height = "500vh";
+            initScroll();
+        }
 
-        if (video.readyState >= 3) handleLoad();
-        else video.addEventListener('canplaythrough', handleLoad, { once: true });
-
-        function initScrollEffects() {
+        function initScroll() {
             video.play().then(() => video.pause());
-            
-            // Video Scroll
-            ScrollTrigger.create({
-                trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.1,
-                onUpdate: self => {
-                    if (video.duration) video.currentTime = self.progress * (video.duration - 0.05);
-                }
-            });
-
-            // UI Transitions
-            let uiTl = gsap.timeline({
-                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.5 }
+            gsap.to(video, {
+                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.1 },
+                onUpdate: self => { if(video.duration) video.currentTime = self.progress * (video.duration - 0.05); }
             });
             
-            uiTl.to("#introUI", { opacity: 0, scale: 0.8, duration: 0.2 }, 0);
-            uiTl.to("#outroUI", { opacity: 1, pointerEvents: "all", duration: 0.2 }, 0.2);
+            gsap.to("#outroUI", {
+                scrollTrigger: { trigger: "body", start: "80% top", end: "bottom bottom", scrub: true },
+                opacity: 1, pointerEvents: "all"
+            });
         }
     </script>
 </body>
