@@ -17,30 +17,29 @@
         body {
             background-color: var(--bg-color);
             font-family: 'Inter', sans-serif;
-            height: 100vh; /* Startet blockiert */
-            overflow: hidden; /* Kein Scrollen am Anfang */
+            height: 100vh;
+            overflow: hidden;
             margin: 0;
             cursor: default;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* --- LOADER CONTAINER (Touch & Interaction Layer) --- */
+        /* --- LOADER CONTAINER --- */
         .loader-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             background: transparent;
-            touch-action: none; /* Verhindert Standard-Scrollen auf Mobile */
-            will-change: transform, opacity; /* GPU Hint */
+            touch-action: none;
+            will-change: transform, opacity;
         }
 
-        /* SHUTTERS (Die Blenden) */
+        /* SHUTTERS */
         .shutter {
             position: absolute; left: 0; width: 100%; height: 50.5%; 
             background: #000;
             z-index: 1;
-            will-change: transform; /* Performance Boost */
+            will-change: transform;
             transform: translate3d(0,0,0);
         }
         .shutter-top { top: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -57,7 +56,7 @@
             flex-direction: column; 
             align-items: center; 
             justify-content: space-evenly;
-            pointer-events: none; /* Klicks gehen durch auf den Container */
+            pointer-events: none;
         }
 
         /* TEXT STYLING */
@@ -87,10 +86,9 @@
             opacity: 0; 
             filter: blur(5px); 
             transform: translateY(10px); 
-            will-change: opacity, filter, transform;
         }
 
-        /* --- AGENCY EYE ICON --- */
+        /* --- CLEAR COMIC EYE ICON --- */
         .eye-container {
             position: relative;
             width: 300px; height: 200px;
@@ -99,59 +97,24 @@
             will-change: opacity;
         }
 
-        .agency-eye-svg {
+        .comic-eye-svg {
             overflow: visible;
-            stroke: white;
-            fill: none;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+            /* Leichter Wackel-Effekt für den handgezeichneten Look */
+            animation: subtle-wiggle 5s ease-in-out infinite;
+        }
+        
+        /* Filter für raue Kanten */
+        .sketch-filter {
+            filter: url(#roughEdges);
         }
 
-        .eye-curve {
-            stroke-width: 1.5;
-            opacity: 0.9;
-            filter: drop-shadow(0 0 4px rgba(255,255,255,0.3));
-            animation: eye-breathe 6s infinite ease-in-out;
-        }
-        .curve-top { transform-origin: center bottom; }
-        .curve-bottom { transform-origin: center top; animation-delay: 0.5s; }
-
-        .eye-spark {
-            fill: white;
-            stroke: none;
-            filter: drop-shadow(0 0 6px rgba(255,255,255,0.8));
-            animation: spark-pulse 3s infinite ease-in-out;
+        @keyframes subtle-wiggle {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(1deg) scale(1.02); }
         }
 
-        .tear-flow {
-            stroke-width: 2;
-            opacity: 0.8;
-            stroke-dasharray: 120;
-            stroke-dashoffset: 120;
-            filter: drop-shadow(0 0 5px rgba(255,255,255,0.4));
-            animation: tear-path-flow 4s infinite ease-out;
-        }
 
-        @keyframes eye-breathe {
-            0%, 100% { transform: scaleY(1); opacity: 0.9; }
-            50% { transform: scaleY(0.95); opacity: 0.7; }
-        }
-
-        @keyframes spark-pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(0.85); opacity: 0.7; }
-            52% { transform: scale(0.9); opacity: 0.8; }
-            54% { transform: scale(0.85); opacity: 0.7; }
-        }
-
-        @keyframes tear-path-flow {
-            0% { stroke-dashoffset: 120; opacity: 0; }
-            30% { opacity: 1; }
-            80% { stroke-dashoffset: 0; opacity: 0.6; }
-            100% { stroke-dashoffset: -30; opacity: 0; }
-        }
-
-        /* --- STAGE (Video Layer) --- */
+        /* --- STAGE (Video) --- */
         .stage { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 0; pointer-events: none; background: #000; 
@@ -180,7 +143,7 @@
         }
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
 
-        /* --- LINKS --- */
+        /* --- LINKS (Buttons zentriert, ohne Pfeile) --- */
         .links-wrapper { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
@@ -193,7 +156,10 @@
             border: 1px solid rgba(255, 255, 255, 0.3); 
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
             transform: translate3d(0,0,0); backface-visibility: hidden; border-radius: 16px; 
-            display: flex; justify-content: space-between; align-items: center; 
+            display: flex; 
+            /* GEÄNDERT: Zentriert den Inhalt */
+            justify-content: center; 
+            align-items: center; 
             text-decoration: none; color: white; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; 
             opacity: 0; 
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); 
@@ -208,6 +174,7 @@
             transform: scale(1.02);
         }
         
+        /* Content Wrapper hat jetzt kein Gap mehr nötig zum (nicht vorhandenen) Pfeil */
         .link-content { display: flex; align-items: center; gap: 15px; }
         .icon { width: 24px; height: 24px; fill: white; transition: fill 0.2s; }
         .link-card:hover .icon { fill: black; }
@@ -224,11 +191,21 @@
             <div class="text-line text-upper" id="line1"></div>
             
             <div class="eye-container" id="eyeIcon">
-                <svg class="agency-eye-svg" viewBox="0 0 300 250" width="300" height="250">
-                    <path class="eye-curve curve-top" d="M 50,125 C 80,60 220,60 250,125" />
-                    <path class="eye-curve curve-bottom" d="M 60,135 C 100,170 200,170 240,135" />
-                    <circle class="eye-spark" cx="150" cy="125" r="5" />
-                    <path class="tear-flow" d="M 150,135 C 150,160 140,190 150,230" />
+                <svg class="comic-eye-svg sketch-filter" viewBox="0 0 200 140" width="260" height="182">
+                    <defs>
+                        <filter id="roughEdges">
+                            <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" result="noise" />
+                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
+                        </filter>
+                    </defs>
+                    
+                    <g stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M 10,70 C 50,20 150,20 190,70 C 150,120 50,120 10,70 Z" />
+                        
+                        <g transform="translate(100, 70)">
+                            <circle r="28" /> <circle r="14" fill="white" /> <circle cx="8" cy="-8" r="4" fill="black" stroke="none" /> 
+                        </g>
+                    </g>
                 </svg>
             </div>
 
@@ -248,15 +225,34 @@
     </div>
 
     <div class="links-wrapper" id="outro">
-        <a href="#" class="link-card" onclick="nav(event, 'https://spotify.com')"><div class="link-content"><svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg><span>Spotify</span></div><span>↗</span></a>
-        <a href="#" class="link-card" onclick="nav(event, 'https://music.apple.com')"><div class="link-content"><svg class="icon" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.68-.83 1.14-1.99.94-3.14-1.02.04-2.22.68-2.93 1.52-.63.74-1.22 1.92-1.07 3.07 1.15.09 2.32-.59 3.06-1.45"/></svg><span>Apple Music</span></div><span>↗</span></a>
-        <a href="#" class="link-card" onclick="nav(event, 'https://youtube.com')"><div class="link-content"><svg class="icon" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg><span>YouTube</span></div><span>↗</span></a>
-        <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')"><div class="link-content"><svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg><span>Instagram</span></div><span>↗</span></a>
+        <a href="#" class="link-card" onclick="nav(event, 'https://spotify.com')">
+            <div class="link-content">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg>
+                <span>Spotify</span>
+            </div>
+        </a>
+        <a href="#" class="link-card" onclick="nav(event, 'https://music.apple.com')">
+            <div class="link-content">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.68-.83 1.14-1.99.94-3.14-1.02.04-2.22.68-2.93 1.52-.63.74-1.22 1.92-1.07 3.07 1.15.09 2.32-.59 3.06-1.45"/></svg>
+                <span>Apple Music</span>
+            </div>
+        </a>
+        <a href="#" class="link-card" onclick="nav(event, 'https://youtube.com')">
+            <div class="link-content">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                <span>YouTube</span>
+            </div>
+        </a>
+        <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')">
+            <div class="link-content">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
+                <span>Instagram</span>
+            </div>
+        </a>
     </div>
     <div class="flash"></div>
 
     <script>
-        // GSAP Plugins registrieren
         gsap.registerPlugin(ScrollTrigger);
         
         const video = document.getElementById('video');
@@ -264,7 +260,7 @@
         const line2 = document.getElementById('line2');
         const interactionLayer = document.getElementById('interactionLayer');
 
-        // --- 1. TEXT SETUP (Wörter zerlegen) ---
+        // --- 1. TEXT SETUP ---
         const s1 = "Manchmal ist freier Fall gar nichts Schlechtes, oder?";
         const s2 = "Wisch mir eine Träne weg";
 
@@ -279,13 +275,10 @@
         splitText(line1, s1);
         splitText(line2, s2);
 
-        // --- 2. INTRO ANIMATION (Startet sofort) ---
+        // --- 2. INTRO ANIMATION (Sofort) ---
         let introTl = gsap.timeline();
-        // Text 1
         introTl.to("#line1 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.1, duration: 0.8 });
-        // Auge erscheint sanft
         introTl.to("#eyeIcon", { opacity: 1, duration: 1.5, ease: "power2.inOut" }, "-=0.4");
-        // Text 2
         introTl.to("#line2 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.05, duration: 0.6 }, "-=0.5");
 
         // --- 3. INTERAKTION (Schnell & Flüssig) ---
@@ -295,45 +288,34 @@
             if(hasInteracted) return;
             hasInteracted = true;
 
-            // iOS Wake-Up Call (Sicherstellen, dass Video bereit ist)
             if (video.paused) { 
                 video.play().then(() => video.pause()).catch(e => {}); 
             }
 
-            // Timeline für den Reveal Effekt
             const tl = gsap.timeline({
                 onComplete: () => {
-                    // Scrollen freigeben
                     document.body.style.height = "500vh";
                     document.body.style.overflow = "auto"; 
-                    interactionLayer.style.display = "none"; // Layer komplett entfernen
-                    initScroll(); // ScrollTrigger aktivieren
+                    interactionLayer.style.display = "none";
+                    initScroll();
                 }
             });
 
-            // 1. Inhalt ausblenden
             tl.to(".loader-content", { scale: 2, opacity: 0, filter: "blur(20px)", duration: 0.6, ease: "power2.in" });
-            
-            // 2. Shutters öffnen (Synchron)
             tl.to("#shutterTop", { yPercent: -100, duration: 1.1, ease: "expo.inOut" }, "-=0.3");
             tl.to("#shutterBottom", { yPercent: 100, duration: 1.1, ease: "expo.inOut" }, "<");
-            
-            // 3. Hinweis einblenden
             tl.to("#scrollHint", { opacity: 0.7, duration: 1, delay: 0.2 });
         }
 
-        // Event Listener (Passive für bessere Performance beim Scrollen)
         window.addEventListener('click', triggerOpen);
         window.addEventListener('touchstart', triggerOpen, { passive: true });
         window.addEventListener('wheel', triggerOpen, { passive: true });
         window.addEventListener('scroll', triggerOpen, { passive: true });
 
-        // --- 4. SCROLL LOGIK (Optimiert) ---
+        // --- 4. SCROLL LOGIK ---
         function initScroll() {
-            // Video auf Frame 1 setzen (Fallback)
             if(video.readyState >= 1) video.currentTime = 0.01;
 
-            // UI Animationen beim Scrollen
             let uiTl = gsap.timeline({ 
                 scrollTrigger: { 
                     trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.5 
@@ -343,7 +325,6 @@
             uiTl.to("#outro", { opacity: 1, pointerEvents: "all", duration: 0.2 }, 0.15);
             uiTl.to(".link-card", { y: 0, scale: 1, opacity: 1, stagger: 0.1, duration: 0.8, ease: "back.out(1.2)", force3D: true }, 0.20);
 
-            // VIDEO Scrubbing (Performance Proxy)
             const dur = video.duration || 10;
             let proxy = { time: 0 };
             
@@ -351,13 +332,9 @@
                 time: dur, 
                 ease: "none",
                 scrollTrigger: { 
-                    trigger: "body", 
-                    start: "top top", 
-                    end: "bottom bottom", 
-                    scrub: 1.2 // Etwas mehr Scrub für Weichheit
+                    trigger: "body", start: "top top", end: "bottom bottom", scrub: 1.2
                 },
                 onUpdate: () => { 
-                    // Nur updaten wenn Video bereit ist
                     if(video.readyState >= 1) video.currentTime = proxy.time; 
                 }
             });
