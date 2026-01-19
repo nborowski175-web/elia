@@ -95,11 +95,11 @@
         }
         .iris-detail { fill: white; stroke: none; }
 
-        /* DIE EINZELNE TRÄNE (Minimal dünner & dynamischer) */
+        /* DIE EINZELNE TRÄNE */
         #finalTear {
             stroke: white;
             fill: none;
-            stroke-width: 11; /* Minimal dünner (vorher 14) */
+            stroke-width: 10; /* Etwas dünner für Eleganz */
             stroke-linecap: round;
             /* Startzustand: Versteckt */
             stroke-dasharray: 350;
@@ -140,7 +140,7 @@
                     <defs>
                         <filter id="inkGrunge" x="-30%" y="-30%" width="160%" height="160%">
                             <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="6" result="noise" />
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="18" xChannelSelector="R" yChannelSelector="G" />
+                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="16" xChannelSelector="R" yChannelSelector="G" />
                         </filter>
                     </defs>
                     
@@ -155,7 +155,7 @@
                                 <circle class="iris-detail" r="15" /> <circle class="iris-detail" cx="15" cy="-15" r="8" /> </g>
                         </g>
 
-                        <path id="finalTear" d="M 100,160 Q 92,230 105,260 T 98,300" />
+                        <path id="finalTear" d="M 125,175 Q 120,240 130,310" />
                     </g>
                 </svg>
             </div>
@@ -221,12 +221,12 @@
 
         // D. FINALE: Die Träne fließt (Erst wenn alles da ist)
         introTl.to("#finalTear", {
-            strokeDashoffset: 0, // Zeichnet die Linie
+            strokeDashoffset: 0, 
             opacity: 1,
-            duration: 3.5,       // Langsamer, schwerer Fluss
+            duration: 3.8,       // Etwas langsamer für mehr "Gewicht"
             ease: "power2.inOut",
-            onComplete: enableInteraction // HIER Interaktion freischalten
-        }, "+=0.2"); // Kurze Pause nach Text
+            onComplete: enableInteraction
+        }, "+=0.2"); 
 
 
         // --- 3. INTERAKTION (Erst nach Träne möglich) ---
@@ -273,7 +273,7 @@
             uiTl.to("#outro", { opacity: 1, pointerEvents: "all", duration: 0.2 }, 0.15);
             uiTl.to(".link-card", { y: 0, scale: 1, opacity: 1, stagger: 0.1, duration: 0.8, ease: "back.out(1.2)", force3D: true }, 0.20);
 
-            // STOPPT das Video kurz vor Ende (Fix für schwarzen Bildschirm)
+            // STOPPT das Video kurz vor Ende
             const dur = (video.duration && video.duration > 0.1) ? video.duration - 0.05 : 10;
             
             let proxy = { time: 0 };
