@@ -52,12 +52,13 @@
             position: relative;
             width: 90%; 
             max-width: 600px;
-            height: 80%; 
+            height: 85%; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: center; /* Zentriert, da nur Text unten ist */
-            gap: 40px; /* Abstand zwischen Auge und Text */
+            /* Verteilung mit Platz dazwischen */
+            justify-content: space-between;
+            padding: 40px 0; /* Abstand oben/unten */
             pointer-events: none;
         }
 
@@ -69,24 +70,25 @@
             z-index: 20;
             display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; 
         }
-        /* Oberer Text ist leer, nimmt keinen Platz weg */
-        .text-upper { display: none; } 
-        .text-lower { font-size: clamp(1.1rem, 3.5vw, 1.5rem); opacity: 0.9; }
+        .text-upper { font-size: clamp(1rem, 3vw, 1.4rem); opacity: 0.8; }
+        .text-lower { font-size: clamp(1.2rem, 3.5vw, 1.6rem); opacity: 0.95; }
+        
         .word { display: inline-block; opacity: 0; filter: blur(5px); transform: translateY(10px); }
 
         /* --- GRUNGE INK EYE CONTAINER --- */
         .eye-container {
             position: relative;
-            width: 320px; height: 300px;
-            display: flex; justify-content: center; align-items: flex-start;
+            width: 320px; 
+            height: auto;
+            display: flex; justify-content: center; align-items: center;
             opacity: 0;
             will-change: opacity;
-            padding-top: 30px;
+            /* Kein Padding mehr nötig durch space-between */
         }
 
         .grunge-eye-svg { overflow: visible; }
 
-        /* Der Filter, der alles nach Tusche-Spritzern aussehen lässt */
+        /* Der extreme Tusche-Filter */
         .ink-filter { filter: url(#inkGrunge); }
 
         /* Statische Augenteile */
@@ -95,13 +97,16 @@
         }
         .iris-detail { fill: white; stroke: none; }
 
-        /* Die einzelne Träne (Initial versteckt) */
-        #singleGrungeTear {
-            stroke: white; fill: none; stroke-linecap: round;
-            stroke-width: 12;
-            stroke-dasharray: 400; /* Länge des Pfades */
-            stroke-dashoffset: 400; /* Versteckt */
-            opacity: 0; /* Doppelt versteckt */
+        /* Die einzelne, schwere Träne */
+        #finalTear {
+            stroke: white;
+            fill: none;
+            stroke-width: 16; /* Sehr dick für den "Blob"-Effekt am Ende */
+            stroke-linecap: round;
+            /* Startzustand: Versteckt */
+            stroke-dasharray: 350;
+            stroke-dashoffset: 350;
+            opacity: 0;
         }
 
         /* --- STAGE (Video) --- */
@@ -133,27 +138,26 @@
             <div class="text-line text-upper" id="line1"></div>
             
             <div class="eye-container" id="eyeIcon">
-                <svg class="grunge-eye-svg" viewBox="0 0 300 400" width="300" height="400">
+                <svg class="grunge-eye-svg" viewBox="0 0 300 350" width="300" height="350">
                     <defs>
-                        <filter id="inkGrunge" x="-20%" y="-20%" width="140%" height="140%">
-                            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise" />
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="15" xChannelSelector="R" yChannelSelector="G" />
+                        <filter id="inkGrunge" x="-30%" y="-30%" width="160%" height="160%">
+                            <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="6" result="noise" />
+                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="18" xChannelSelector="R" yChannelSelector="G" />
                         </filter>
                     </defs>
                     
                     <g class="ink-filter">
                         <g class="eye-static" stroke-width="8">
                             <path d="M 30,120 Q 150,20 270,120" />
-                            <path d="M 40,100 Q 150,0 260,100" stroke-width="4" opacity="0.7" />
+                            <path d="M 40,100 Q 150,0 260,100" stroke-width="4" opacity="0.7" /> 
                             <path d="M 40,140 Q 150,200 260,140" stroke-width="6" />
+                            
                             <g transform="translate(150, 130)">
                                 <circle r="40" stroke-width="4" />
-                                <circle class="iris-detail" r="15" />
-                                <circle class="iris-detail" cx="15" cy="-15" r="8" />
-                            </g>
+                                <circle class="iris-detail" r="15" /> <circle class="iris-detail" cx="15" cy="-15" r="8" /> </g>
                         </g>
 
-                        <path id="singleGrungeTear" d="M 150,180 L 150,450" />
+                        <path id="finalTear" d="M 100,160 Q 95,240 105,290" />
                     </g>
                 </svg>
             </div>
@@ -174,22 +178,10 @@
     </div>
 
     <div class="links-wrapper" id="outro">
-        <a href="#" class="link-card" onclick="nav(event, 'https://spotify.com')">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg>
-            <span>Spotify</span>
-        </a>
-        <a href="#" class="link-card" onclick="nav(event, 'https://music.apple.com')">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.68-.83 1.14-1.99.94-3.14-1.02.04-2.22.68-2.93 1.52-.63.74-1.22 1.92-1.07 3.07 1.15.09 2.32-.59 3.06-1.45"/></svg>
-            <span>Apple Music</span>
-        </a>
-        <a href="#" class="link-card" onclick="nav(event, 'https://youtube.com')">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-            <span>YouTube</span>
-        </a>
-        <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')">
-            <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
-            <span>Instagram</span>
-        </a>
+        <a href="#" class="link-card" onclick="nav(event, 'https://spotify.com')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg><span>Spotify</span></a>
+        <a href="#" class="link-card" onclick="nav(event, 'https://music.apple.com')"><svg class="icon" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.68-.83 1.14-1.99.94-3.14-1.02.04-2.22.68-2.93 1.52-.63.74-1.22 1.92-1.07 3.07 1.15.09 2.32-.59 3.06-1.45"/></svg><span>Apple Music</span></a>
+        <a href="#" class="link-card" onclick="nav(event, 'https://youtube.com')"><svg class="icon" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg><span>YouTube</span></a>
+        <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')"><svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg><span>Instagram</span></a>
     </div>
     <div class="flash"></div>
 
@@ -197,10 +189,12 @@
         gsap.registerPlugin(ScrollTrigger);
         
         const video = document.getElementById('video');
+        const line1 = document.getElementById('line1');
         const line2 = document.getElementById('line2');
         const interactionLayer = document.getElementById('interactionLayer');
 
         // --- 1. TEXT SETUP ---
+        const s1 = "Manchmal ist freier Fall gar nichts Schlechtes, oder?";
         const s2 = "Wisch die Träne weg und DU wirst schon sehen!";
 
         function splitText(target, text) {
@@ -208,40 +202,53 @@
                 let span = document.createElement("span");
                 span.innerText = word;
                 span.classList.add("word");
-                // Einfache Hervorhebung für "DU"
-                if(word === "DU") span.style.fontWeight = "900";
+                if(word === "DU") span.style.fontWeight = "800";
                 target.appendChild(span);
             });
         }
-        // Nur Text 2 wird befüllt
+        splitText(line1, s1);
         splitText(line2, s2);
 
-        // --- 2. INTRO ANIMATION (SEQUENZ) ---
+        // --- 2. INTRO ANIMATION (Sequenz & Interaktions-Sperre) ---
         let introTl = gsap.timeline();
         
-        // A. Auge erscheint
-        introTl.to("#eyeIcon", { opacity: 1, duration: 1.5, ease: "power2.inOut" });
+        // A. Text Oben
+        introTl.to("#line1 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.1, duration: 0.8 });
         
-        // B. Text erscheint (Wort für Wort)
-        introTl.to("#line2 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.08, duration: 0.7 }, "-=0.5");
+        // B. Auge
+        introTl.to("#eyeIcon", { opacity: 1, duration: 1.5, ease: "power2.inOut" }, "-=0.4");
+        
+        // C. Text Unten
+        introTl.to("#line2 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.06, duration: 0.7 }, "-=0.5");
 
-        // C. FINALE: DIE TRÄNE FLIESST (ERST NACH DEM TEXT)
-        introTl.to("#singleGrungeTear", {
-            strokeDashoffset: 0, // Träne fließt nach unten
+        // D. FINALE: Die Träne fließt (Danach Interaktion erlauben)
+        introTl.to("#finalTear", {
+            strokeDashoffset: 0,
             opacity: 1,
-            duration: 4, // Langsamer, zäher Fluss
-            ease: "power2.inOut"
-        }, "+=0.3"); // Kurze Pause nach dem Text
+            duration: 3.5, // Langsamer, schwerer Fluss
+            ease: "power2.inOut",
+            onComplete: enableInteraction // HIER wird die Interaktion freigeschaltet
+        }, "+=0.2"); 
 
 
-        // --- 3. INTERAKTION ---
+        // --- 3. INTERAKTION (Erst nach Träne möglich) ---
+        function enableInteraction() {
+            // Event Listener werden erst JETZT hinzugefügt
+            window.addEventListener('click', triggerOpen);
+            window.addEventListener('touchstart', triggerOpen, { passive: true });
+            window.addEventListener('wheel', triggerOpen, { passive: true });
+            window.addEventListener('scroll', triggerOpen, { passive: true });
+        }
+
         let hasInteracted = false;
 
         function triggerOpen() {
             if(hasInteracted) return;
             hasInteracted = true;
 
-            if (video.paused) { video.play().then(() => video.pause()).catch(e => {}); }
+            if (video.paused) { 
+                video.play().then(() => video.pause()).catch(e => {}); 
+            }
 
             const tl = gsap.timeline({
                 onComplete: () => {
@@ -258,11 +265,6 @@
             tl.to("#scrollHint", { opacity: 0.7, duration: 1, delay: 0.2 });
         }
 
-        window.addEventListener('click', triggerOpen);
-        window.addEventListener('touchstart', triggerOpen, { passive: true });
-        window.addEventListener('wheel', triggerOpen, { passive: true });
-        window.addEventListener('scroll', triggerOpen, { passive: true });
-
         // --- 4. SCROLL LOGIK ---
         function initScroll() {
             if(video.readyState >= 1) video.currentTime = 0.01;
@@ -274,7 +276,9 @@
             uiTl.to("#outro", { opacity: 1, pointerEvents: "all", duration: 0.2 }, 0.15);
             uiTl.to(".link-card", { y: 0, scale: 1, opacity: 1, stagger: 0.1, duration: 0.8, ease: "back.out(1.2)", force3D: true }, 0.20);
 
+            // STOPPT das Video kurz vor Ende (Fix für schwarzen Bildschirm)
             const dur = (video.duration && video.duration > 0.1) ? video.duration - 0.05 : 10;
+            
             let proxy = { time: 0 };
             gsap.to(proxy, {
                 time: dur, 
