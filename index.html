@@ -7,7 +7,8 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
     <style>
         :root { --bg-color: #000000; }
@@ -19,61 +20,149 @@
             height: 100vh;
             overflow: hidden;
             margin: 0;
-            cursor: pointer;
+            cursor: default;
+            -webkit-font-smoothing: antialiased;
+            overscroll-behavior: none; 
         }
 
-        /* --- STARFIELD CANVAS --- */
-        #starfield {
+        /* --- LOADER CONTAINER --- */
+        .loader-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 1;
-            background: #000;
+            z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: transparent;
+            touch-action: none;
+            will-change: transform, opacity;
         }
 
+        /* SHUTTERS */
+        .shutter {
+            position: absolute; left: 0; width: 100%; height: 50.5%; 
+            background: #000;
+            z-index: 1;
+            will-change: transform;
+            transform: translate3d(0,0,0);
+        }
+        .shutter-top { top: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .shutter-bottom { bottom: 0; border-top: 1px solid rgba(255,255,255,0.05); }
+
+        /* CONTENT LAYOUT */
         .loader-content {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
             z-index: 10;
-            width: 90%;
+            position: relative;
+            width: 90%; 
+            max-width: 600px;
+            height: 85%; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: space-between;
+            padding: 40px 0;
             pointer-events: none;
         }
 
+        /* TEXT STYLING */
         .text-line {
             color: white;
             font-weight: 600;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            font-size: clamp(0.7rem, 2.5vw, 1rem);
-            text-shadow: 0 0 20px rgba(255,255,255,0.5);
+            text-align: center;
+            z-index: 20;
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; 
+        }
+        .text-upper { font-size: clamp(1rem, 3vw, 1.4rem); opacity: 0.8; }
+        .text-lower { font-size: clamp(1.2rem, 3.5vw, 1.6rem); opacity: 0.95; }
+        
+        .word { display: inline-block; opacity: 0; filter: blur(5px); transform: translateY(10px); }
+
+        /* --- GRUNGE INK EYE CONTAINER --- */
+        .eye-container {
+            position: relative;
+            width: 320px; 
+            height: auto;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0;
+            will-change: opacity;
         }
 
-        .word { 
-            display: inline-block; 
-            opacity: 0; 
-            filter: blur(10px); 
-            transform: translateY(10px); 
+        .grunge-eye-svg { overflow: visible; }
+
+        /* Der extreme Tusche-Filter */
+        .ink-filter { filter: url(#inkGrunge); }
+
+        /* Statische Augenteile */
+        .eye-static {
+            stroke: white; fill: none; stroke-linecap: round; stroke-linejoin: round;
+        }
+        .iris-detail { fill: white; stroke: none; }
+
+        /* DIE EINZELNE TRÄNE (Zurück zur einfachen, schweren Linie) */
+        #finalTear {
+            stroke: white;
+            fill: none;
+            stroke-width: 14; /* Dick und schwer */
+            stroke-linecap: round;
+            /* Startzustand: Versteckt */
+            stroke-dasharray: 300;
+            stroke-dashoffset: 300;
+            opacity: 0;
         }
 
-        /* --- STAGE --- */
-        .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-        video { width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+        /* --- STAGE (Video) --- */
+        .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; background: #000; }
+        video { width: 100%; height: 100%; object-fit: cover; opacity: 1; display: block; will-change: transform; transform: translate3d(0, 0, 0); }
 
-        .flash-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; z-index: 10000; pointer-events: none; opacity: 0;
-        }
+        /* --- UI LAYER --- */
+        .ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .hero-title { font-size: clamp(3rem, 12vw, 8rem); font-weight: 900; text-align: center; line-height: 0.9; color: white; text-shadow: 0 0 30px rgba(255,255,255,0.3); mix-blend-mode: overlay; }
+        .scroll-hint { position: absolute; bottom: 5vh; font-size: 0.8rem; letter-spacing: 0.3em; color: white; animation: bounce 2s infinite; opacity: 0; }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
+
+        /* --- LINKS --- */
+        .links-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; perspective: 1000px; pointer-events: none; opacity: 0; }
+        .link-card { width: 85%; max-width: 400px; padding: 22px 30px; margin: 10px 0; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transform: translate3d(0,0,0); backface-visibility: hidden; border-radius: 18px; display: flex; justify-content: center; align-items: center; gap: 16px; text-decoration: none; color: white; font-weight: 800; font-size: 1.15rem; text-transform: uppercase; letter-spacing: 0.02em; opacity: 0; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; will-change: transform, opacity; }
+        .link-card:hover { background: white; color: black; border-color: white; box-shadow: 0 10px 50px rgba(255,255,255,0.3); transform: scale(1.02); }
+        .icon { width: 26px; height: 26px; fill: white; transition: fill 0.3s; }
+        .link-card:hover .icon { fill: black; }
+        .flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; transform: scaleY(0); transform-origin: bottom; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <canvas id="starfield"></canvas>
+    <div class="loader-container" id="interactionLayer">
+        <div class="shutter shutter-top" id="shutterTop"></div>
+        <div class="shutter shutter-bottom" id="shutterBottom"></div>
+        
+        <div class="loader-content" id="loaderContent">
+            <div class="text-line text-upper" id="line1"></div>
+            
+            <div class="eye-container" id="eyeIcon">
+                <svg class="grunge-eye-svg" viewBox="0 0 300 350" width="300" height="350">
+                    <defs>
+                        <filter id="inkGrunge" x="-30%" y="-30%" width="160%" height="160%">
+                            <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="6" result="noise" />
+                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="18" xChannelSelector="R" yChannelSelector="G" />
+                        </filter>
+                    </defs>
+                    
+                    <g class="ink-filter">
+                        <g class="eye-static" stroke-width="8">
+                            <path d="M 30,120 Q 150,20 270,120" />
+                            <path d="M 40,100 Q 150,0 260,100" stroke-width="4" opacity="0.7" /> 
+                            <path d="M 40,140 Q 150,200 260,140" stroke-width="6" />
+                            
+                            <g transform="translate(150, 130)">
+                                <circle r="40" stroke-width="4" />
+                                <circle class="iris-detail" r="15" /> <circle class="iris-detail" cx="15" cy="-15" r="8" /> </g>
+                        </g>
 
-    <div class="loader-content">
-        <div class="text-line" id="loaderText"></div>
+                        <path id="finalTear" d="M 100,160 L 100,300" />
+                    </g>
+                </svg>
+            </div>
+
+            <div class="text-line text-lower" id="line2"></div>
+        </div>
     </div>
-
-    <div class="flash-overlay" id="flash"></div>
 
     <div class="stage">
         <video id="video" muted playsinline preload="auto">
@@ -81,116 +170,124 @@
         </video>
     </div>
 
+    <div class="ui-layer" id="intro">
+        <h1 class="hero-title">KOMM MIT<br>AUF MEINE<br>REISE</h1>
+        <div class="scroll-hint" id="scrollHint">SCROLL TO FALL</div>
+    </div>
+
+    <div class="links-wrapper" id="outro">
+        <a href="#" class="link-card" onclick="nav(event, 'https://spotify.com')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg><span>Spotify</span></a>
+        <a href="#" class="link-card" onclick="nav(event, 'https://music.apple.com')"><svg class="icon" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.68-.83 1.14-1.99.94-3.14-1.02.04-2.22.68-2.93 1.52-.63.74-1.22 1.92-1.07 3.07 1.15.09 2.32-.59 3.06-1.45"/></svg><span>Apple Music</span></a>
+        <a href="#" class="link-card" onclick="nav(event, 'https://youtube.com')"><svg class="icon" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg><span>YouTube</span></a>
+        <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')"><svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg><span>Instagram</span></a>
+    </div>
+    <div class="flash"></div>
+
     <script>
-        // --- STARFIELD LOGIC ---
-        const canvas = document.getElementById('starfield');
-        const ctx = canvas.getContext('2d');
-        let stars = [];
-        let numStars = 400;
-        let speed = 0.5;
-        let warpActive = false;
+        gsap.registerPlugin(ScrollTrigger);
+        
+        const video = document.getElementById('video');
+        const line1 = document.getElementById('line1');
+        const line2 = document.getElementById('line2');
+        const interactionLayer = document.getElementById('interactionLayer');
 
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
+        // --- 1. TEXT SETUP ---
+        const s1 = "Manchmal ist freier Fall gar nichts Schlechtes, oder?";
+        const s2 = "Wisch die Träne weg und DU wirst schon sehen!";
 
-        class Star {
-            constructor() {
-                this.reset();
-            }
-            reset() {
-                this.x = (Math.random() - 0.5) * canvas.width;
-                this.y = (Math.random() - 0.5) * canvas.height;
-                this.z = Math.random() * canvas.width;
-                this.px = 0; this.py = 0;
-            }
-            update() {
-                this.z -= speed;
-                if (this.z <= 0) this.reset();
-            }
-            draw() {
-                let sx = (this.x / this.z) * canvas.width + canvas.width / 2;
-                let sy = (this.y / this.z) * canvas.height + canvas.height / 2;
-                let r = (1 - this.z / canvas.width) * 2;
-                
-                ctx.beginPath();
-                ctx.fillStyle = "white";
-                ctx.arc(sx, sy, r, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        for (let i = 0; i < numStars; i++) stars.push(new Star());
-
-        function animateStars() {
-            ctx.fillStyle = warpActive ? "rgba(0,0,0,0.2)" : "black";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            stars.forEach(s => { s.update(); s.draw(); });
-            requestAnimationFrame(animateStars);
-        }
-
-        window.addEventListener('resize', resize);
-        resize();
-        animateStars();
-
-        // --- TEXT & INTRO ---
-        const phrase = "Wisch alles weg und DU wirst schon sehen!";
-        const loaderText = document.getElementById('loaderText');
-
-        phrase.split(" ").forEach(word => {
-            let span = document.createElement("span");
-            span.innerText = word + " ";
-            span.classList.add("word");
-            if(word === "DU") span.style.fontWeight = "900";
-            loaderText.appendChild(span);
-        });
-
-        gsap.to(".word", { 
-            opacity: 1, filter: "blur(0px)", y: 0, 
-            stagger: 0.15, duration: 1.2, ease: "power2.out", delay: 0.5
-        });
-
-        // --- INTERACTION ---
-        window.addEventListener('mousedown', startWarp);
-        window.addEventListener('touchstart', startWarp);
-
-        function startWarp() {
-            window.removeEventListener('mousedown', startWarp);
-            warpActive = true;
-            
-            // Sterne beschleunigen
-            gsap.to(window, { 
-                duration: 1.5, 
-                onUpdate: () => { speed += 0.5; }, 
-                ease: "expo.in" 
+        function splitText(target, text) {
+            text.split(" ").forEach(word => {
+                let span = document.createElement("span");
+                span.innerText = word;
+                span.classList.add("word");
+                if(word === "DU") span.style.fontWeight = "800";
+                target.appendChild(span);
             });
+        }
+        splitText(line1, s1);
+        splitText(line2, s2);
 
-            // Flash & Übergang
-            let tl = gsap.timeline({
+        // --- 2. INTRO ANIMATION (Sequenz) ---
+        let introTl = gsap.timeline();
+        
+        // A. Text Oben
+        introTl.to("#line1 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.1, duration: 0.8 });
+        
+        // B. Auge
+        introTl.to("#eyeIcon", { opacity: 1, duration: 1.5, ease: "power2.inOut" }, "-=0.4");
+        
+        // C. Text Unten
+        introTl.to("#line2 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.06, duration: 0.7 }, "-=0.5");
+
+        // D. FINALE: Die Träne fließt (Erst wenn alles da ist)
+        introTl.to("#finalTear", {
+            strokeDashoffset: 0, // Zeichnet die Linie
+            opacity: 1,
+            duration: 3.5,       // Langsamer, schwerer Fluss
+            ease: "power2.inOut",
+            onComplete: enableInteraction // HIER Interaktion freischalten
+        }, "+=0.2"); // Kurze Pause nach Text
+
+
+        // --- 3. INTERAKTION (Erst nach Träne möglich) ---
+        function enableInteraction() {
+            window.addEventListener('click', triggerOpen);
+            window.addEventListener('touchstart', triggerOpen, { passive: true });
+            window.addEventListener('wheel', triggerOpen, { passive: true });
+            window.addEventListener('scroll', triggerOpen, { passive: true });
+        }
+
+        let hasInteracted = false;
+
+        function triggerOpen() {
+            if(hasInteracted) return;
+            hasInteracted = true;
+
+            if (video.paused) { 
+                video.play().then(() => video.pause()).catch(e => {}); 
+            }
+
+            const tl = gsap.timeline({
                 onComplete: () => {
-                    canvas.style.display = "none";
-                    document.body.style.overflow = "auto";
                     document.body.style.height = "500vh";
+                    document.body.style.overflow = "auto"; 
+                    interactionLayer.style.display = "none";
                     initScroll();
                 }
             });
 
-            tl.to("#flash", { opacity: 1, duration: 0.8, ease: "power2.in", delay: 0.5 });
-            tl.to(".loader-content", { opacity: 0, duration: 0.3 }, "-=0.8");
-            tl.set("#video", { opacity: 1 });
-            tl.to("#flash", { opacity: 0, duration: 1.5 });
+            tl.to(".loader-content", { scale: 2, opacity: 0, filter: "blur(20px)", duration: 0.6, ease: "power2.in" });
+            tl.to("#shutterTop", { yPercent: -100, duration: 1.1, ease: "expo.inOut" }, "-=0.3");
+            tl.to("#shutterBottom", { yPercent: 100, duration: 1.1, ease: "expo.inOut" }, "<");
+            tl.to("#scrollHint", { opacity: 0.7, duration: 1, delay: 0.2 });
         }
 
+        // --- 4. SCROLL LOGIK ---
         function initScroll() {
-            const video = document.getElementById('video');
-            video.play().then(() => video.pause());
-            gsap.to(video, {
-                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1 },
-                onUpdate: self => {
-                    if(video.readyState >= 1) video.currentTime = self.progress * (video.duration - 0.05);
-                }
+            if(video.readyState >= 1) video.currentTime = 0.01;
+
+            let uiTl = gsap.timeline({ 
+                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.5 } 
             });
+            uiTl.to("#intro", { scale: 1.5, opacity: 0, filter: "blur(20px)", duration: 0.1 }, 0);
+            uiTl.to("#outro", { opacity: 1, pointerEvents: "all", duration: 0.2 }, 0.15);
+            uiTl.to(".link-card", { y: 0, scale: 1, opacity: 1, stagger: 0.1, duration: 0.8, ease: "back.out(1.2)", force3D: true }, 0.20);
+
+            // STOPPT das Video kurz vor Ende (Fix für schwarzen Bildschirm)
+            const dur = (video.duration && video.duration > 0.1) ? video.duration - 0.05 : 10;
+            
+            let proxy = { time: 0 };
+            gsap.to(proxy, {
+                time: dur, 
+                ease: "none",
+                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1.2 },
+                onUpdate: () => { if(video.readyState >= 1) video.currentTime = proxy.time; }
+            });
+        }
+
+        function nav(e, url) { 
+            e.preventDefault(); 
+            gsap.to(".flash", { scaleY: 1, duration: 0.5, ease: "power2.inOut", onComplete: () => window.location.href = url }); 
         }
     </script>
 </body>
