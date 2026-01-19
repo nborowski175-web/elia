@@ -7,7 +7,6 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
     <style>
         :root { --bg-color: #000000; }
@@ -15,15 +14,13 @@
         
         body {
             background-color: var(--bg-color);
-            font-family: 'Inter', sans-serif;
             height: 100vh;
             overflow: hidden;
             margin: 0;
             -webkit-font-smoothing: antialiased;
-            overscroll-behavior: none; 
         }
 
-        /* --- DREAMY LOADING SCREEN --- */
+        /* --- IMMERSIVE PORTAL LOADER --- */
         #loadingScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000;
@@ -32,178 +29,109 @@
             overflow: hidden;
         }
 
-        /* Sanfte Lichtnebel */
-        .glow-orb {
-            position: absolute;
-            width: 40vw; height: 40vw;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.4;
-            will-change: transform;
-        }
-        .orb-1 { background: #fff; top: 20%; left: 20%; }
-        .orb-2 { background: #fff; bottom: 20%; right: 20%; }
-
-        /* --- LOADER CONTENT --- */
-        .loader-container {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            background: transparent;
-            pointer-events: none;
+        #portalCanvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
         }
 
-        .shutter {
-            position: absolute; left: 0; width: 100%; height: 50.5%; 
-            background: #000;
-            z-index: 1;
-        }
-        .shutter-top { top: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .shutter-bottom { bottom: 0; border-top: 1px solid rgba(255,255,255,0.05); }
-
-        .loader-content {
-            z-index: 10;
-            position: relative;
-            width: 90%; max-width: 600px; height: 85%; 
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            padding: 40px 0;
-        }
-
-        .text-line { color: white; font-weight: 600; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
-        .text-upper { font-size: clamp(1rem, 3vw, 1.4rem); opacity: 0.8; }
-        .text-lower { font-size: clamp(1.2rem, 3.5vw, 1.6rem); opacity: 0.95; }
-        .word { display: inline-block; opacity: 0; filter: blur(5px); transform: translateY(10px); }
-
-        .eye-container { position: relative; width: 320px; opacity: 0; }
-        .grunge-eye-svg { overflow: visible; }
-        .ink-filter { filter: url(#inkGrunge); }
-        .eye-static { stroke: white; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-        .iris-detail { fill: white; stroke: none; }
-
-        #finalTear { stroke: white; fill: none; stroke-linecap: round; stroke-dasharray: 400; stroke-dashoffset: 400; opacity: 0; }
-
+        /* --- VIDEO STAGE --- */
         .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-        video { width: 100%; height: 100%; object-fit: cover; opacity: 1; display: block; }
-        .flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10001; opacity: 0; pointer-events: none; }
+        video { width: 100%; height: 100%; object-fit: cover; opacity: 0; display: block; }
+
+        .flash {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 10001; opacity: 0; pointer-events: none;
+        }
     </style>
 </head>
 <body>
 
     <div id="loadingScreen">
-        <div class="glow-orb orb-1"></div>
-        <div class="glow-orb orb-2"></div>
+        <canvas id="portalCanvas"></canvas>
     </div>
 
     <div class="flash" id="flash"></div>
 
-    <div class="loader-container" id="interactionLayer">
-        <div class="shutter shutter-top" id="shutterTop"></div>
-        <div class="shutter shutter-bottom" id="shutterBottom"></div>
-        
-        <div class="loader-content" id="loaderContent">
-            <div class="text-line text-upper" id="line1"></div>
-            
-            <div class="eye-container" id="eyeIcon">
-                <svg class="grunge-eye-svg" viewBox="0 0 300 350" width="300" height="350">
-                    <defs>
-                        <filter id="inkGrunge" x="-30%" y="-30%" width="160%" height="160%">
-                            <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="6" result="noise" />
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="18" xChannelSelector="R" yChannelSelector="G" />
-                        </filter>
-                    </defs>
-                    <g class="ink-filter">
-                        <g class="eye-static" stroke-width="8">
-                            <path d="M 30,120 Q 150,20 270,120" />
-                            <path d="M 40,100 Q 150,0 260,100" stroke-width="4" opacity="0.7" /> 
-                            <path d="M 40,140 Q 150,200 260,140" stroke-width="6" />
-                            <g transform="translate(150, 130)">
-                                <circle r="40" stroke-width="4" />
-                                <circle class="iris-detail" r="15" /> 
-                                <circle class="iris-detail" cx="15" cy="-15" r="8" /> 
-                            </g>
-                        </g>
-                        <path id="finalTear" d="M 65,135 Q 55,220 75,260 T 70,310" />
-                    </g>
-                </svg>
-            </div>
-
-            <div class="text-line text-lower" id="line2"></div>
-        </div>
+    <div class="stage">
+        <video id="video" muted playsinline preload="auto">
+            <source src="journey.mp4" type="video/mp4">
+        </video>
     </div>
-
-    <div class="stage"><video id="video" muted playsinline preload="auto"><source src="journey.mp4" type="video/mp4"></video></div>
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
+        const canvas = document.getElementById('portalCanvas');
+        const ctx = canvas.getContext('2d');
         const video = document.getElementById('video');
-        const s1 = "Manchmal ist freier Fall gar nichts Schlechtes, oder?";
-        const s2 = "Wisch die Träne weg und DU wirst schon sehen!";
+        
+        let particles = [];
+        let loaded = false;
 
-        function splitText(target, text) {
-            text.split(" ").forEach(word => {
-                let span = document.createElement("span");
-                span.innerText = word;
-                span.classList.add("word");
-                if(word === "DU") span.style.fontWeight = "800";
-                target.appendChild(span);
-            });
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         }
-        splitText(document.getElementById('line1'), s1);
-        splitText(document.getElementById('line2'), s2);
+        window.addEventListener('resize', resize);
+        resize();
 
-        // 1. Dreamy Loading Animation
-        gsap.to(".orb-1", { x: "20vw", y: "10vh", duration: 8, repeat: -1, yoyo: true, ease: "sine.inOut" });
-        gsap.to(".orb-2", { x: "-20vw", y: "-10vh", duration: 10, repeat: -1, yoyo: true, ease: "sine.inOut" });
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = (Math.random() - 0.5) * canvas.width;
+                this.y = (Math.random() - 0.5) * canvas.height;
+                this.z = Math.random() * canvas.width;
+                this.o = Math.random();
+            }
+            update() {
+                this.z -= loaded ? 20 : 2; // Beschleunigt massiv, wenn geladen
+                if (this.z <= 0) this.reset();
+            }
+            draw() {
+                let x = (this.x / this.z) * canvas.width + canvas.width / 2;
+                let y = (this.y / this.z) * canvas.height + canvas.height / 2;
+                let r = (1 - this.z / canvas.width) * 3;
+                
+                ctx.beginPath();
+                ctx.fillStyle = `rgba(255, 255, 255, ${1 - this.z / canvas.width})`;
+                ctx.arc(x, y, r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
 
-        // Simulation der Ladezeit (Wenn Video ready ist)
+        for(let i=0; i<300; i++) particles.push(new Particle());
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // Simulation der Ladezeit & Transition
         window.addEventListener('load', () => {
-            setTimeout(revealContent, 3000); // 3 Sekunden verträumtes Schweben
+            setTimeout(() => {
+                loaded = true;
+                const tl = gsap.timeline({
+                    onComplete: () => {
+                        document.getElementById('loadingScreen').style.display = "none";
+                        document.body.style.overflow = "auto";
+                        document.body.style.height = "500vh";
+                        initScroll();
+                    }
+                });
+
+                tl.to("#flash", { opacity: 1, duration: 0.4, ease: "power2.in", delay: 1 });
+                tl.set(video, { opacity: 1 });
+                tl.to("#flash", { opacity: 0, duration: 1.5 });
+            }, 3000);
         });
-
-        function revealContent() {
-            let tl = gsap.timeline();
-            tl.to(".glow-orb", { scale: 0, opacity: 0, duration: 1.5, ease: "power4.in" });
-            tl.to("#flash", { opacity: 1, duration: 0.1 });
-            tl.set("#loadingScreen", { display: "none" });
-            tl.to("#flash", { opacity: 0, duration: 1 });
-            
-            // Start der bekannten Augen-Sequenz
-            startIntro();
-        }
-
-        function startIntro() {
-            let introTl = gsap.timeline();
-            introTl.to("#line1 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.1 });
-            introTl.to("#eyeIcon", { opacity: 1, duration: 1.5 }, "-=0.4");
-            introTl.to("#line2 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.06 }, "-=0.5");
-
-            introTl.to("#finalTear", {
-                strokeDashoffset: 0, opacity: 1, duration: 4, ease: "power2.inOut",
-                onUpdate: function() {
-                    let p = this.progress();
-                    let w = p < 0.7 ? 22 - (p * 21.4) : 7 + ((p - 0.7) * 16.6);
-                    gsap.set("#finalTear", { strokeWidth: w });
-                },
-                onComplete: () => {
-                    window.addEventListener('click', triggerOpen);
-                    window.addEventListener('touchstart', triggerOpen);
-                }
-            }, "+=0.2");
-        }
-
-        function triggerOpen() {
-            gsap.to("#loaderContent", { scale: 2, opacity: 0, filter: "blur(20px)", duration: 0.6 });
-            gsap.to("#shutterTop", { yPercent: -100, duration: 1.1, ease: "expo.inOut" });
-            gsap.to("#shutterBottom", { yPercent: 100, duration: 1.1, ease: "expo.inOut" });
-            document.body.style.overflow = "auto";
-            document.body.style.height = "500vh";
-            initScroll();
-        }
 
         function initScroll() {
             if(video.readyState >= 1) video.currentTime = 0.01;
             gsap.to(video, {
-                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1.2 },
+                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1 },
                 onUpdate: self => { if(video.readyState >= 1) video.currentTime = self.progress * (video.duration - 0.05); }
             });
         }
