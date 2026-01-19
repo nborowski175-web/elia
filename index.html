@@ -7,7 +7,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
 
     <style>
         :root { --bg-color: #000000; }
@@ -15,62 +15,56 @@
         
         body {
             background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
             height: 100vh;
             overflow: hidden;
             margin: 0;
-            font-family: 'Inter', sans-serif;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* --- PURE BATTERY LOADER --- */
+        /* --- BATTERY LOADER (PHASE 1) --- */
         #loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000;
-            z-index: 10000;
+            background: #000; z-index: 10000;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
-
         .battery-body {
-            width: 60px; height: 30px;
-            border: 2px solid #fff;
-            border-radius: 4px;
-            position: relative;
-            padding: 2px;
+            width: 60px; height: 30px; border: 2px solid #fff; border-radius: 4px;
+            position: relative; padding: 2px;
         }
         .battery-body::after {
-            content: '';
-            position: absolute; right: -6px; top: 7px;
-            width: 4px; height: 12px;
-            background: #fff;
-            border-radius: 0 2px 2px 0;
+            content: ''; position: absolute; right: -6px; top: 7px;
+            width: 4px; height: 12px; background: #fff; border-radius: 0 2px 2px 0;
         }
-        .battery-fill {
-            width: 0%; height: 100%;
-            background: #fff;
-        }
-        .loading-text {
-            color: #fff;
-            margin-top: 15px;
-            font-size: 0.7rem;
-            letter-spacing: 0.3em;
-            font-weight: 300;
-            text-transform: uppercase;
-        }
+        .battery-fill { width: 0%; height: 100%; background: #fff; }
+        .loading-text { color: #fff; margin-top: 15px; font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; }
 
-        /* --- EYE OPEN EFFECT (SHUTTERS) --- */
+        /* --- SHUTTERS (PHASE 2) --- */
         .shutter {
             position: fixed; left: 0; width: 100%; height: 50vh;
-            background: #000; z-index: 9999;
-            will-change: transform;
+            background: #000; z-index: 9999; will-change: transform;
         }
-        .shutter-top { top: 0; }
-        .shutter-bottom { bottom: 0; }
+        .shutter-top { top: 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .shutter-bottom { bottom: 0; border-top: 1px solid rgba(255,255,255,0.1); }
 
-        /* --- STAGE --- */
+        /* --- STAGE & VIDEO --- */
         .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-        video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        video { width: 100%; height: 100%; object-fit: cover; display: block; background: #000; }
 
-        /* --- OUTRO (Original Icons) --- */
+        /* --- UI OVERLAY (PHASE 3) --- */
+        .ui-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10; pointer-events: none;
+            display: flex; flex-direction: column; justify-content: space-between;
+            padding: 10vh 0; align-items: center;
+        }
+
+        .text-line { color: white; font-weight: 600; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; opacity: 0; }
+        .text-upper { font-size: clamp(1rem, 3vw, 1.4rem); }
+        .text-lower { font-size: clamp(1.2rem, 3.5vw, 1.6rem); }
+        .word { display: inline-block; }
+
+        /* --- ICONS / LINKS --- */
         .links-wrapper { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
@@ -78,23 +72,26 @@
         }
         .link-card { 
             width: 85%; max-width: 400px; padding: 22px 30px; margin: 10px 0; 
-            background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.2); 
+            background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.25); 
             backdrop-filter: blur(20px); border-radius: 18px; color: white; 
             text-align: center; text-decoration: none; font-weight: 800; text-transform: uppercase;
+            transition: all 0.3s;
         }
+        .link-card:hover { background: white; color: black; transform: scale(1.02); }
+
+        .flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10001; opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
 
     <div id="loader">
-        <div class="battery-body">
-            <div class="battery-fill" id="batFill"></div>
-        </div>
-        <div class="loading-text">Loading...</div>
+        <div class="battery-body"><div class="battery-fill" id="batFill"></div></div>
+        <div class="loading-text">Loading Downfall...</div>
     </div>
 
     <div class="shutter shutter-top" id="shutterTop"></div>
     <div class="shutter shutter-bottom" id="shutterBottom"></div>
+    <div class="flash" id="flash"></div>
 
     <div class="stage">
         <video id="video" muted playsinline preload="auto">
@@ -102,67 +99,86 @@
         </video>
     </div>
 
+    <div class="ui-overlay" id="videoUI">
+        <div class="text-line text-upper" id="line1"></div>
+        <div class="text-line text-lower" id="line2"></div>
+    </div>
+
     <div class="links-wrapper" id="outroUI">
-        <a href="#" class="link-card">Spotify</a>
-        <a href="#" class="link-card">Instagram</a>
+        <a href="https://spotify.com" class="link-card">Spotify</a>
+        <a href="https://music.apple.com" class="link-card">Apple Music</a>
+        <a href="https://instagram.com" class="link-card">Instagram</a>
     </div>
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
         const video = document.getElementById('video');
-        const batFill = document.getElementById('batFill');
-
-        // 1. Echter Load-Check
-        let loadProgress = { val: 0 };
         
-        // Simuliere Fortschritt, aber warte auf Video
-        const loadAnim = gsap.to(loadProgress, {
-            val: 100, 
-            duration: 3, 
-            ease: "power1.inOut",
-            onUpdate: () => { batFill.style.width = loadProgress.val + "%"; },
+        // Setup Texts
+        const s1 = "Manchmal ist freier Fall gar nichts Schlechtes, oder?";
+        const s2 = "Wisch alles weg und DU wirst schon sehen!";
+
+        function splitText(target, text) {
+            text.split(" ").forEach(word => {
+                let span = document.createElement("span");
+                span.innerText = word;
+                span.classList.add("word");
+                if(word === "DU") span.style.fontWeight = "900";
+                target.appendChild(span);
+                target.appendChild(document.createTextNode(" "));
+            });
+        }
+        splitText(document.getElementById('line1'), s1);
+        splitText(document.getElementById('line2'), s2);
+
+        // 1. Loading
+        let loadVal = { val: 0 };
+        gsap.to(loadVal, {
+            val: 100, duration: 3, ease: "power2.inOut",
+            onUpdate: () => { document.getElementById('batFill').style.width = loadVal.val + "%"; },
             onComplete: () => {
-                if (video.readyState >= 3) startEyeEffect();
-                else video.addEventListener('canplaythrough', startEyeEffect, { once: true });
+                if(video.readyState >= 3) reveal();
+                else video.addEventListener('canplaythrough', reveal, { once: true });
             }
         });
 
-        function startEyeEffect() {
-            // Loader verschwindet
-            gsap.to("#loader", { opacity: 0, duration: 0.5, onComplete: () => {
+        function reveal() {
+            gsap.to("#loader", { opacity: 0, duration: 0.8, onComplete: () => {
                 document.getElementById('loader').style.display = "none";
                 
-                // Auge auf Effekt (Smooth Shutter)
-                const eyeTl = gsap.timeline({
+                // Auge auf
+                const tl = gsap.timeline({
                     onComplete: () => {
-                        document.body.style.overflow = "auto";
                         document.body.style.height = "500vh";
+                        document.body.style.overflow = "auto";
                         initScroll();
                     }
                 });
-
-                eyeTl.to("#shutterTop", { yPercent: -100, duration: 1.5, ease: "power2.inOut" });
-                eyeTl.to("#shutterBottom", { yPercent: 100, duration: 1.5, ease: "power2.inOut" }, "<");
+                tl.to("#shutterTop", { yPercent: -100, duration: 1.5, ease: "expo.inOut" });
+                tl.to("#shutterBottom", { yPercent: 100, duration: 1.5, ease: "expo.inOut" }, "<");
+                tl.to("#line1", { opacity: 1, duration: 1 }, "-=0.5");
+                tl.to("#line2", { opacity: 1, duration: 1 }, "-=0.5");
             }});
         }
 
         function initScroll() {
             video.play().then(() => video.pause());
-            
+
+            // Video Scrubbing
             gsap.to(video, {
-                scrollTrigger: {
-                    trigger: "body",
-                    start: "top top",
-                    end: "bottom bottom",
-                    scrub: 0.1
-                },
-                onUpdate: self => {
-                    if(video.duration) video.currentTime = self.progress * (video.duration - 0.05);
-                }
+                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.1 },
+                onUpdate: self => { if(video.duration) video.currentTime = self.progress * (video.duration - 0.05); }
             });
 
+            // UI Fade out while scrolling
+            gsap.to("#videoUI", {
+                scrollTrigger: { trigger: "body", start: "top top", end: "20% top", scrub: true },
+                opacity: 0, y: -50
+            });
+
+            // Outro Fade in
             gsap.to("#outroUI", {
-                scrollTrigger: { trigger: "body", start: "85% top", end: "bottom bottom", scrub: true },
+                scrollTrigger: { trigger: "body", start: "80% top", end: "bottom bottom", scrub: true },
                 opacity: 1, pointerEvents: "all"
             });
         }
