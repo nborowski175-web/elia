@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
     <style>
         :root { --bg-color: #000000; }
@@ -88,29 +88,53 @@
             transform: translateY(10px); 
         }
 
-        /* --- CLEAR COMIC EYE ICON --- */
+        /* --- EVIL CRYING EYE ICON --- */
         .eye-container {
             position: relative;
-            width: 300px; height: 200px;
+            width: 300px; height: 220px; /* Etwas höher für die Träne */
             display: flex; justify-content: center; align-items: center;
             opacity: 0;
             will-change: opacity;
         }
 
-        .comic-eye-svg {
+        .evil-eye-svg {
             overflow: visible;
-            /* Leichter Wackel-Effekt für den handgezeichneten Look */
-            animation: subtle-wiggle 5s ease-in-out infinite;
+            /* Aggressives Zucken statt sanftem Schweben */
+            animation: angry-twitch 0.15s infinite alternate ease-in-out;
         }
         
-        /* Filter für raue Kanten */
         .sketch-filter {
             filter: url(#roughEdges);
         }
 
-        @keyframes subtle-wiggle {
-            0%, 100% { transform: rotate(0deg) scale(1); }
-            50% { transform: rotate(1deg) scale(1.02); }
+        /* Die böse Pupille zuckt extra */
+        .evil-pupil {
+            animation: pupil-stare 3s infinite alternate ease-in-out;
+        }
+
+        /* Die schwere Träne fließt */
+        .heavy-tear {
+            stroke-dasharray: 150;
+            stroke-dashoffset: 150;
+            animation: tear-drip 4s infinite ease-in;
+            opacity: 0.9;
+        }
+
+        @keyframes angry-twitch {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(1px, 1.5px); }
+        }
+
+        @keyframes pupil-stare {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.9) translate(0, 2px); }
+        }
+
+        @keyframes tear-drip {
+            0% { stroke-dashoffset: 150; opacity: 0; }
+            30% { opacity: 1; }
+            80% { stroke-dashoffset: 0; opacity: 0.6; }
+            100% { stroke-dashoffset: -50; opacity: 0; }
         }
 
 
@@ -143,7 +167,7 @@
         }
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
 
-        /* --- LINKS (Buttons zentriert, ohne Pfeile) --- */
+        /* --- LINKS --- */
         .links-wrapper { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
@@ -151,32 +175,21 @@
         }
 
         .link-card { 
-            width: 85%; max-width: 400px; padding: 20px 24px; margin: 8px 0; 
-            background: rgba(0, 0, 0, 0.6); /* Dark Glass */
-            border: 1px solid rgba(255, 255, 255, 0.3); 
+            width: 85%; max-width: 400px; padding: 22px 30px; margin: 10px 0; 
+            background: rgba(0, 0, 0, 0.6); 
+            border: 1px solid rgba(255, 255, 255, 0.25); 
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
-            transform: translate3d(0,0,0); backface-visibility: hidden; border-radius: 16px; 
-            display: flex; 
-            /* GEÄNDERT: Zentriert den Inhalt */
-            justify-content: center; 
-            align-items: center; 
-            text-decoration: none; color: white; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; 
-            opacity: 0; 
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); 
-            transition: background 0.3s, color 0.3s, transform 0.2s; 
-            will-change: transform, opacity;
+            transform: translate3d(0,0,0); backface-visibility: hidden; border-radius: 18px; 
+            display: flex; justify-content: center; align-items: center; gap: 16px; 
+            text-decoration: none; color: white; font-weight: 800; font-size: 1.15rem; text-transform: uppercase; letter-spacing: 0.02em; 
+            opacity: 0; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); transition: all 0.3s ease; will-change: transform, opacity;
         }
 
         .link-card:hover { 
-            background: white; 
-            color: black; 
-            box-shadow: 0 10px 50px rgba(255,255,255,0.4); 
-            transform: scale(1.02);
+            background: white; color: black; border-color: white; box-shadow: 0 10px 50px rgba(255,255,255,0.3); transform: scale(1.02);
         }
         
-        /* Content Wrapper hat jetzt kein Gap mehr nötig zum (nicht vorhandenen) Pfeil */
-        .link-content { display: flex; align-items: center; gap: 15px; }
-        .icon { width: 24px; height: 24px; fill: white; transition: fill 0.2s; }
+        .icon { width: 26px; height: 26px; fill: white; transition: fill 0.3s; }
         .link-card:hover .icon { fill: black; }
         .flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; transform: scaleY(0); transform-origin: bottom; pointer-events: none; }
     </style>
@@ -191,20 +204,24 @@
             <div class="text-line text-upper" id="line1"></div>
             
             <div class="eye-container" id="eyeIcon">
-                <svg class="comic-eye-svg sketch-filter" viewBox="0 0 200 140" width="260" height="182">
+                <svg class="evil-eye-svg sketch-filter" viewBox="0 0 200 160" width="260" height="208">
                     <defs>
                         <filter id="roughEdges">
-                            <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" result="noise" />
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
+                            <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="4" result="noise" />
+                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" />
                         </filter>
                     </defs>
                     
-                    <g stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M 10,70 C 50,20 150,20 190,70 C 150,120 50,120 10,70 Z" />
+                    <g stroke="white" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M 20,60 Q 100,100 180,40" stroke-width="5" />
                         
-                        <g transform="translate(100, 70)">
-                            <circle r="28" /> <circle r="14" fill="white" /> <circle cx="8" cy="-8" r="4" fill="black" stroke="none" /> 
+                        <path d="M 30,80 Q 100,110 170,70" />
+
+                        <g transform="translate(100, 85)">
+                            <circle class="evil-pupil" r="6" fill="white" stroke="none" />
                         </g>
+
+                        <path class="heavy-tear" d="M 50,90 Q 55,120 50,150 L 45,180" stroke-width="6" opacity="0.8" />
                     </g>
                 </svg>
             </div>
@@ -226,28 +243,20 @@
 
     <div class="links-wrapper" id="outro">
         <a href="#" class="link-card" onclick="nav(event, 'https://spotify.com')">
-            <div class="link-content">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg>
-                <span>Spotify</span>
-            </div>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg>
+            <span>Spotify</span>
         </a>
         <a href="#" class="link-card" onclick="nav(event, 'https://music.apple.com')">
-            <div class="link-content">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.68-.83 1.14-1.99.94-3.14-1.02.04-2.22.68-2.93 1.52-.63.74-1.22 1.92-1.07 3.07 1.15.09 2.32-.59 3.06-1.45"/></svg>
-                <span>Apple Music</span>
-            </div>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.68-.83 1.14-1.99.94-3.14-1.02.04-2.22.68-2.93 1.52-.63.74-1.22 1.92-1.07 3.07 1.15.09 2.32-.59 3.06-1.45"/></svg>
+            <span>Apple Music</span>
         </a>
         <a href="#" class="link-card" onclick="nav(event, 'https://youtube.com')">
-            <div class="link-content">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                <span>YouTube</span>
-            </div>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            <span>YouTube</span>
         </a>
         <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')">
-            <div class="link-content">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
-                <span>Instagram</span>
-            </div>
+            <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
+            <span>Instagram</span>
         </a>
     </div>
     <div class="flash"></div>
@@ -275,13 +284,13 @@
         splitText(line1, s1);
         splitText(line2, s2);
 
-        // --- 2. INTRO ANIMATION (Sofort) ---
+        // --- 2. INTRO ANIMATION ---
         let introTl = gsap.timeline();
         introTl.to("#line1 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.1, duration: 0.8 });
         introTl.to("#eyeIcon", { opacity: 1, duration: 1.5, ease: "power2.inOut" }, "-=0.4");
         introTl.to("#line2 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.05, duration: 0.6 }, "-=0.5");
 
-        // --- 3. INTERAKTION (Schnell & Flüssig) ---
+        // --- 3. INTERAKTION ---
         let hasInteracted = false;
 
         function triggerOpen() {
