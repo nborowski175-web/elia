@@ -56,9 +56,8 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            /* Verteilung mit Platz dazwischen */
             justify-content: space-between;
-            padding: 40px 0; /* Abstand oben/unten */
+            padding: 40px 0;
             pointer-events: none;
         }
 
@@ -83,7 +82,6 @@
             display: flex; justify-content: center; align-items: center;
             opacity: 0;
             will-change: opacity;
-            /* Kein Padding mehr nötig durch space-between */
         }
 
         .grunge-eye-svg { overflow: visible; }
@@ -97,16 +95,13 @@
         }
         .iris-detail { fill: white; stroke: none; }
 
-        /* Die einzelne, schwere Träne */
+        /* DIE NEUE TRÄNE (Formspezifisch) */
         #finalTear {
-            stroke: white;
-            fill: none;
-            stroke-width: 16; /* Sehr dick für den "Blob"-Effekt am Ende */
-            stroke-linecap: round;
-            /* Startzustand: Versteckt */
-            stroke-dasharray: 350;
-            stroke-dashoffset: 350;
-            opacity: 0;
+            fill: white; /* Gefüllt, nicht nur Kontur */
+            stroke: none;
+            opacity: 0; /* Startet unsichtbar */
+            transform-origin: 50% 0%; /* Startpunkt oben am Lid */
+            transform: scaleY(0); /* Startet "eingezogen" */
         }
 
         /* --- STAGE (Video) --- */
@@ -138,7 +133,7 @@
             <div class="text-line text-upper" id="line1"></div>
             
             <div class="eye-container" id="eyeIcon">
-                <svg class="grunge-eye-svg" viewBox="0 0 300 350" width="300" height="350">
+                <svg class="grunge-eye-svg" viewBox="0 0 300 400" width="300" height="400">
                     <defs>
                         <filter id="inkGrunge" x="-30%" y="-30%" width="160%" height="160%">
                             <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="6" result="noise" />
@@ -157,7 +152,16 @@
                                 <circle class="iris-detail" r="15" /> <circle class="iris-detail" cx="15" cy="-15" r="8" /> </g>
                         </g>
 
-                        <path id="finalTear" d="M 100,160 Q 95,240 105,290" />
+                        <g transform="translate(135, 160)">
+                             <path id="finalTear" d="M 15,0 
+                                                    C 15,0 5,20 5,40 
+                                                    C 5,60 0,80 0,100 
+                                                    C 0,125 10,145 25,145 
+                                                    C 40,145 50,125 50,100 
+                                                    C 50,80 45,60 45,40 
+                                                    C 45,20 35,0 35,0 
+                                                    Z" />
+                        </g>
                     </g>
                 </svg>
             </div>
@@ -209,7 +213,7 @@
         splitText(line1, s1);
         splitText(line2, s2);
 
-        // --- 2. INTRO ANIMATION (Sequenz & Interaktions-Sperre) ---
+        // --- 2. INTRO ANIMATION (Sequenz) ---
         let introTl = gsap.timeline();
         
         // A. Text Oben
@@ -221,19 +225,25 @@
         // C. Text Unten
         introTl.to("#line2 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.06, duration: 0.7 }, "-=0.5");
 
-        // D. FINALE: Die Träne fließt (Danach Interaktion erlauben)
+        // D. FINALE: Die Träne fließt (Erst wenn alles da ist)
+        // Wir animieren Opacity, ScaleY (für das "Rauswachsen") und Y-Position (für das Fließen)
         introTl.to("#finalTear", {
-            strokeDashoffset: 0,
             opacity: 1,
-            duration: 3.5, // Langsamer, schwerer Fluss
-            ease: "power2.inOut",
-            onComplete: enableInteraction // HIER wird die Interaktion freigeschaltet
-        }, "+=0.2"); 
+            scaleY: 1,      // Träne wächst aus dem Lid
+            duration: 1.5,  // Schnelleres Erscheinen
+            ease: "power2.out"
+        }, "+=0.2"); // Kurze Pause nach Text
+
+        introTl.to("#finalTear", {
+            y: 150,         // Fließt nach unten
+            duration: 3,    // Langsames Fließen
+            ease: "power1.inOut",
+            onComplete: enableInteraction // HIER Interaktion freischalten
+        }, "-=0.5"); // Startet schon während des Wachsens
 
 
         // --- 3. INTERAKTION (Erst nach Träne möglich) ---
         function enableInteraction() {
-            // Event Listener werden erst JETZT hinzugefügt
             window.addEventListener('click', triggerOpen);
             window.addEventListener('touchstart', triggerOpen, { passive: true });
             window.addEventListener('wheel', triggerOpen, { passive: true });
