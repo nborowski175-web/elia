@@ -7,6 +7,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
 
     <style>
@@ -16,43 +17,47 @@
         body {
             background-color: var(--bg-color);
             font-family: 'Inter', sans-serif;
-            height: 100vh;
-            overflow: hidden;
+            height: 100vh; /* Startet blockiert */
+            overflow: hidden; /* Kein Scrollen am Anfang */
             margin: 0;
             cursor: default;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* --- LOADER CONTAINER --- */
+        /* --- LOADER CONTAINER (Touch & Interaction Layer) --- */
         .loader-container {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             background: transparent;
-            touch-action: none;
+            touch-action: none; /* Verhindert Standard-Scrollen auf Mobile */
+            will-change: transform, opacity; /* GPU Hint */
         }
 
-        /* SHUTTERS */
+        /* SHUTTERS (Die Blenden) */
         .shutter {
             position: absolute; left: 0; width: 100%; height: 50.5%; 
             background: #000;
             z-index: 1;
-            will-change: transform;
+            will-change: transform; /* Performance Boost */
+            transform: translate3d(0,0,0);
         }
         .shutter-top { top: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .shutter-bottom { bottom: 0; border-top: 1px solid rgba(255,255,255,0.05); }
 
-        /* CONTENT LAYOUT (Bessere Verteilung) */
+        /* CONTENT LAYOUT */
         .loader-content {
             z-index: 10;
             position: relative;
             width: 90%; 
             max-width: 600px;
-            height: 80%; /* Nicht volle Höhe, damit es nicht am Rand klebt */
+            height: 80%; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            /* WICHTIG: Verteilt den Platz gleichmäßig zwischen den Elementen */
             justify-content: space-evenly;
+            pointer-events: none; /* Klicks gehen durch auf den Container */
         }
 
         /* TEXT STYLING */
@@ -82,72 +87,97 @@
             opacity: 0; 
             filter: blur(5px); 
             transform: translateY(10px); 
+            will-change: opacity, filter, transform;
         }
 
-        /* --- NEW ELEGANT EYE --- */
+        /* --- AGENCY EYE ICON --- */
         .eye-container {
             position: relative;
-            width: 300px; height: 150px;
+            width: 300px; height: 200px;
             display: flex; justify-content: center; align-items: center;
             opacity: 0;
+            will-change: opacity;
         }
 
-        .sketch-eye {
-            fill: none;
+        .agency-eye-svg {
+            overflow: visible;
             stroke: white;
+            fill: none;
             stroke-linecap: round;
             stroke-linejoin: round;
-            overflow: visible;
         }
 
-        /* Die neuen, sauberen Skizzen-Linien */
-        .elegant-sketch {
-            stroke-width: 2;
-            /* Macht die Linie leicht unruhig, wie handgezeichnet */
-            stroke-dasharray: 1000;
-            stroke-dashoffset: 0;
-            filter: drop-shadow(0 0 2px rgba(255,255,255,0.5));
+        .eye-curve {
+            stroke-width: 1.5;
+            opacity: 0.9;
+            filter: drop-shadow(0 0 4px rgba(255,255,255,0.3));
+            animation: eye-breathe 6s infinite ease-in-out;
         }
+        .curve-top { transform-origin: center bottom; }
+        .curve-bottom { transform-origin: center top; animation-delay: 0.5s; }
 
-        /* Die Pupille */
-        .pupil-group {
-            transform-origin: center;
-            animation: pupil-breathe 4s infinite ease-in-out;
-        }
-        
-        /* Füllung der Pupille mit leichter Struktur */
-        .sketch-fill {
+        .eye-spark {
             fill: white;
             stroke: none;
-            filter: url(#sketchFilter);
+            filter: drop-shadow(0 0 6px rgba(255,255,255,0.8));
+            animation: spark-pulse 3s infinite ease-in-out;
         }
 
-        /* Träne */
-        .tear-line {
-            stroke-width: 1.5;
-            opacity: 0.7;
-            animation: tear-flow 3s infinite ease-in-out;
+        .tear-flow {
+            stroke-width: 2;
+            opacity: 0.8;
+            stroke-dasharray: 120;
+            stroke-dashoffset: 120;
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.4));
+            animation: tear-path-flow 4s infinite ease-out;
         }
 
-        @keyframes pupil-breathe {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(0.9); }
+        @keyframes eye-breathe {
+            0%, 100% { transform: scaleY(1); opacity: 0.9; }
+            50% { transform: scaleY(0.95); opacity: 0.7; }
         }
 
-        @keyframes tear-flow {
-            0% { stroke-dasharray: 5 10; stroke-dashoffset: 20; opacity: 0.4; }
-            50% { stroke-dasharray: 10 5; stroke-dashoffset: 0; opacity: 0.8; }
-            100% { stroke-dasharray: 5 10; stroke-dashoffset: -20; opacity: 0.4; }
+        @keyframes spark-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.85); opacity: 0.7; }
+            52% { transform: scale(0.9); opacity: 0.8; }
+            54% { transform: scale(0.85); opacity: 0.7; }
         }
 
-        /* --- STAGE --- */
-        .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; background: #000; }
-        video { width: 100%; height: 100%; object-fit: cover; opacity: 1; display: block; transform: translate3d(0, 0, 0); }
+        @keyframes tear-path-flow {
+            0% { stroke-dashoffset: 120; opacity: 0; }
+            30% { opacity: 1; }
+            80% { stroke-dashoffset: 0; opacity: 0.6; }
+            100% { stroke-dashoffset: -30; opacity: 0; }
+        }
+
+        /* --- STAGE (Video Layer) --- */
+        .stage { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 0; pointer-events: none; background: #000; 
+        }
+        video { 
+            width: 100%; height: 100%; object-fit: cover; 
+            opacity: 1; display: block; 
+            will-change: transform;
+            transform: translate3d(0, 0, 0); 
+        }
 
         /* --- UI LAYER --- */
-        .ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .hero-title { font-size: clamp(3rem, 12vw, 8rem); font-weight: 900; text-align: center; line-height: 0.9; color: white; text-shadow: 0 0 30px rgba(255,255,255,0.3); mix-blend-mode: overlay; }
-        .scroll-hint { position: absolute; bottom: 5vh; font-size: 0.8rem; letter-spacing: 0.3em; color: white; animation: bounce 2s infinite; opacity: 0; }
+        .ui-layer { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 10; pointer-events: none; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+        }
+        .hero-title { 
+            font-size: clamp(3rem, 12vw, 8rem); font-weight: 900; 
+            text-align: center; line-height: 0.9; color: white; 
+            text-shadow: 0 0 30px rgba(255,255,255,0.3); mix-blend-mode: overlay; 
+        }
+        .scroll-hint { 
+            position: absolute; bottom: 5vh; font-size: 0.8rem; letter-spacing: 0.3em; 
+            color: white; animation: bounce 2s infinite; opacity: 0; 
+        }
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
 
         /* --- LINKS --- */
@@ -159,7 +189,7 @@
 
         .link-card { 
             width: 85%; max-width: 400px; padding: 20px 24px; margin: 8px 0; 
-            background: rgba(0, 0, 0, 0.6); 
+            background: rgba(0, 0, 0, 0.6); /* Dark Glass */
             border: 1px solid rgba(255, 255, 255, 0.3); 
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
             transform: translate3d(0,0,0); backface-visibility: hidden; border-radius: 16px; 
@@ -168,6 +198,7 @@
             opacity: 0; 
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); 
             transition: background 0.3s, color 0.3s, transform 0.2s; 
+            will-change: transform, opacity;
         }
 
         .link-card:hover { 
@@ -193,23 +224,11 @@
             <div class="text-line text-upper" id="line1"></div>
             
             <div class="eye-container" id="eyeIcon">
-                <svg class="sketch-eye" viewBox="0 0 300 200" width="300" height="200">
-                    <defs>
-                        <filter id="sketchFilter">
-                            <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" result="noise"/>
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
-                        </filter>
-                    </defs>
-                    
-                    <path class="elegant-sketch" d="M 30,100 Q 150,20 270,100" />
-                    <path class="elegant-sketch" d="M 30,100 Q 150,180 270,100" />
-
-                    <g class="pupil-group" transform="translate(150, 100)">
-                         <circle cx="0" cy="0" r="20" class="sketch-fill"/>
-                         <circle cx="0" cy="0" r="22" stroke="white" stroke-width="1" fill="none" opacity="0.5"/>
-                    </g>
-
-                    <path class="tear-line elegant-sketch" d="M 150,140 C 150,160 145,180 150,200" opacity="0.6" />
+                <svg class="agency-eye-svg" viewBox="0 0 300 250" width="300" height="250">
+                    <path class="eye-curve curve-top" d="M 50,125 C 80,60 220,60 250,125" />
+                    <path class="eye-curve curve-bottom" d="M 60,135 C 100,170 200,170 240,135" />
+                    <circle class="eye-spark" cx="150" cy="125" r="5" />
+                    <path class="tear-flow" d="M 150,135 C 150,160 140,190 150,230" />
                 </svg>
             </div>
 
@@ -237,6 +256,7 @@
     <div class="flash"></div>
 
     <script>
+        // GSAP Plugins registrieren
         gsap.registerPlugin(ScrollTrigger);
         
         const video = document.getElementById('video');
@@ -244,7 +264,7 @@
         const line2 = document.getElementById('line2');
         const interactionLayer = document.getElementById('interactionLayer');
 
-        // --- 1. TEXT SETUP ---
+        // --- 1. TEXT SETUP (Wörter zerlegen) ---
         const s1 = "Manchmal ist freier Fall gar nichts Schlechtes, oder?";
         const s2 = "Wisch mir eine Träne weg";
 
@@ -259,65 +279,94 @@
         splitText(line1, s1);
         splitText(line2, s2);
 
-        // --- 2. INTRO ANIMATION (Sofort) ---
+        // --- 2. INTRO ANIMATION (Startet sofort) ---
         let introTl = gsap.timeline();
+        // Text 1
         introTl.to("#line1 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.1, duration: 0.8 });
+        // Auge erscheint sanft
         introTl.to("#eyeIcon", { opacity: 1, duration: 1.5, ease: "power2.inOut" }, "-=0.4");
+        // Text 2
         introTl.to("#line2 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.05, duration: 0.6 }, "-=0.5");
 
-        // --- 3. DIE INTERAKTION (Wipe/Scroll/Tap) ---
+        // --- 3. INTERAKTION (Schnell & Flüssig) ---
         let hasInteracted = false;
 
         function triggerOpen() {
             if(hasInteracted) return;
             hasInteracted = true;
 
-            if (video.paused) { video.play().then(() => video.pause()).catch(e => {}); }
+            // iOS Wake-Up Call (Sicherstellen, dass Video bereit ist)
+            if (video.paused) { 
+                video.play().then(() => video.pause()).catch(e => {}); 
+            }
 
+            // Timeline für den Reveal Effekt
             const tl = gsap.timeline({
                 onComplete: () => {
+                    // Scrollen freigeben
                     document.body.style.height = "500vh";
                     document.body.style.overflow = "auto"; 
-                    interactionLayer.style.display = "none";
-                    initScroll();
+                    interactionLayer.style.display = "none"; // Layer komplett entfernen
+                    initScroll(); // ScrollTrigger aktivieren
                 }
             });
 
-            // Content weg
+            // 1. Inhalt ausblenden
             tl.to(".loader-content", { scale: 2, opacity: 0, filter: "blur(20px)", duration: 0.6, ease: "power2.in" });
             
-            // Blenden auf
+            // 2. Shutters öffnen (Synchron)
             tl.to("#shutterTop", { yPercent: -100, duration: 1.1, ease: "expo.inOut" }, "-=0.3");
             tl.to("#shutterBottom", { yPercent: 100, duration: 1.1, ease: "expo.inOut" }, "<");
             
-            // Hinweis
+            // 3. Hinweis einblenden
             tl.to("#scrollHint", { opacity: 0.7, duration: 1, delay: 0.2 });
         }
 
+        // Event Listener (Passive für bessere Performance beim Scrollen)
         window.addEventListener('click', triggerOpen);
-        window.addEventListener('touchstart', triggerOpen);
-        window.addEventListener('wheel', triggerOpen);
-        window.addEventListener('scroll', triggerOpen);
+        window.addEventListener('touchstart', triggerOpen, { passive: true });
+        window.addEventListener('wheel', triggerOpen, { passive: true });
+        window.addEventListener('scroll', triggerOpen, { passive: true });
 
-        // --- 4. SCROLL LOGIK ---
+        // --- 4. SCROLL LOGIK (Optimiert) ---
         function initScroll() {
-            video.currentTime = 0.01;
+            // Video auf Frame 1 setzen (Fallback)
+            if(video.readyState >= 1) video.currentTime = 0.01;
 
-            let uiTl = gsap.timeline({ scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.5 } });
+            // UI Animationen beim Scrollen
+            let uiTl = gsap.timeline({ 
+                scrollTrigger: { 
+                    trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.5 
+                } 
+            });
             uiTl.to("#intro", { scale: 1.5, opacity: 0, filter: "blur(20px)", duration: 0.1 }, 0);
             uiTl.to("#outro", { opacity: 1, pointerEvents: "all", duration: 0.2 }, 0.15);
             uiTl.to(".link-card", { y: 0, scale: 1, opacity: 1, stagger: 0.1, duration: 0.8, ease: "back.out(1.2)", force3D: true }, 0.20);
 
+            // VIDEO Scrubbing (Performance Proxy)
             const dur = video.duration || 10;
             let proxy = { time: 0 };
+            
             gsap.to(proxy, {
-                time: dur, ease: "none",
-                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 1.2 },
-                onUpdate: () => { if(video.readyState >= 1) video.currentTime = proxy.time; }
+                time: dur, 
+                ease: "none",
+                scrollTrigger: { 
+                    trigger: "body", 
+                    start: "top top", 
+                    end: "bottom bottom", 
+                    scrub: 1.2 // Etwas mehr Scrub für Weichheit
+                },
+                onUpdate: () => { 
+                    // Nur updaten wenn Video bereit ist
+                    if(video.readyState >= 1) video.currentTime = proxy.time; 
+                }
             });
         }
 
-        function nav(e, url) { e.preventDefault(); gsap.to(".flash", { scaleY: 1, duration: 0.5, ease: "power2.inOut", onComplete: () => window.location.href = url }); }
+        function nav(e, url) { 
+            e.preventDefault(); 
+            gsap.to(".flash", { scaleY: 1, duration: 0.5, ease: "power2.inOut", onComplete: () => window.location.href = url }); 
+        }
     </script>
 </body>
 </html>
