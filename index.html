@@ -95,15 +95,15 @@
         }
         .iris-detail { fill: white; stroke: none; }
 
-        /* DIE EINZELNE TRÄNE (Zurück zur einfachen, schweren Linie) */
+        /* DIE EINZELNE TRÄNE (Minimal dünner & dynamischer) */
         #finalTear {
             stroke: white;
             fill: none;
-            stroke-width: 14; /* Dick und schwer */
+            stroke-width: 11; /* Minimal dünner (vorher 14) */
             stroke-linecap: round;
             /* Startzustand: Versteckt */
-            stroke-dasharray: 300;
-            stroke-dashoffset: 300;
+            stroke-dasharray: 350;
+            stroke-dashoffset: 350;
             opacity: 0;
         }
 
@@ -155,7 +155,7 @@
                                 <circle class="iris-detail" r="15" /> <circle class="iris-detail" cx="15" cy="-15" r="8" /> </g>
                         </g>
 
-                        <path id="finalTear" d="M 100,160 L 100,300" />
+                        <path id="finalTear" d="M 100,160 Q 92,230 105,260 T 98,300" />
                     </g>
                 </svg>
             </div>
