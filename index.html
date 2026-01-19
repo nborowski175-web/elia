@@ -7,7 +7,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
 
     <style>
         :root { --bg-color: #000000; }
@@ -23,7 +23,7 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* --- STAGE 1: MINIMAL BATTERY LOADER --- */
+        /* --- LOADER 1: BATTERY --- */
         #batteryLayer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 10000; background: #000;
@@ -31,46 +31,60 @@
         }
         .battery-box {
             width: 70px; height: 35px; border: 2px solid #fff; border-radius: 5px;
-            position: relative; padding: 2px;
+            position: relative; padding: 3px;
         }
         .battery-box::after {
             content: ''; position: absolute; right: -7px; top: 9px;
-            width: 4px; height: 13px; background: #fff; border-radius: 0 2px 2px 0;
+            width: 5px; height: 13px; background: #fff; border-radius: 0 2px 2px 0;
         }
-        .battery-fill { width: 0%; height: 100%; background: #fff; border-radius: 1px; will-change: width; }
-        .loading-text { color: white; margin-top: 15px; font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; font-weight: 400; opacity: 0.6; }
+        .battery-fill { width: 0%; height: 100%; background: #fff; border-radius: 1px; }
+        .loading-text { color: white; margin-top: 15px; font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; font-weight: 300; }
 
-        /* --- STAGE 2: SHUTTERS (EYE EFFECT) --- */
-        .shutter {
-            position: fixed; left: 0; width: 100%; height: 50.5%; 
-            background: #000; z-index: 9999; will-change: transform;
+        /* --- LOADER 2: EYE & TEXT --- */
+        .loader-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; visibility: hidden;
         }
-        .shutter-top { top: 0; }
-        .shutter-bottom { bottom: 0; }
+        .shutter { position: fixed; left: 0; width: 100%; height: 50.5%; background: #000; z-index: 1; will-change: transform; }
+        .shutter-top { top: 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .shutter-bottom { bottom: 0; border-top: 1px solid rgba(255,255,255,0.05); }
 
-        /* --- STAGE 3: VIDEO --- */
-        .stage { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background: #000; }
+        .loader-content {
+            z-index: 10; position: relative; width: 90%; max-width: 600px;
+            height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .text-line { color: white; font-weight: 600; text-align: center; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
+        .text-upper { font-size: clamp(1rem, 3vw, 1.4rem); opacity: 0.8; margin-bottom: 40px; }
+        .text-lower { font-size: clamp(1rem, 3vw, 1.4rem); opacity: 0.8; margin-top: 40px; }
+        .word { display: inline-block; opacity: 0; filter: blur(5px); transform: translateY(10px); }
+
+        /* EYE */
+        .eye-container { position: relative; width: 300px; height: 120px; display: flex; justify-content: center; align-items: center; }
+        .sketch-eye { fill: none; stroke: white; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+        .lid-stroke { stroke-width: 2.5; }
+        .pupil-scribble { fill: white; stroke: none; animation: pupil-twitch 3s infinite ease-in-out; }
+        .ink-drip { stroke: white; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 100; stroke-dashoffset: 100; opacity: 0; }
+
+        @keyframes pupil-twitch { 0%, 100% { transform: scale(1); } 50% { transform: scale(0.95) translate(1px, 0); } }
+
+        /* --- VIDEO --- */
+        .stage { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-        /* --- UI OVERLAY --- */
+        /* --- UI & BUTTONS --- */
         .ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .hero-title { font-size: clamp(3rem, 10vw, 8rem); font-weight: 900; text-align: center; line-height: 0.9; color: white; text-shadow: 0 0 40px rgba(255,255,255,0.2); mix-blend-mode: overlay; }
-        .scroll-hint { position: absolute; bottom: 8vh; font-size: 0.7rem; letter-spacing: 0.4em; color: white; opacity: 0; }
-
-        /* --- FINAL LINKS --- */
-        .links-wrapper { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            pointer-events: none; opacity: 0; 
-        }
+        .hero-title { font-size: clamp(3rem, 10vw, 8rem); font-weight: 900; text-align: center; line-height: 0.9; color: white; text-shadow: 0 0 30px rgba(255,255,255,0.3); mix-blend-mode: overlay; }
+        
+        .links-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; opacity: 0; }
         .link-card { 
-            width: 90%; max-width: 380px; padding: 22px 30px; margin: 10px 0; 
-            background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
-            border-radius: 20px; display: flex; justify-content: center; align-items: center; gap: 15px; 
+            width: 85%; max-width: 400px; padding: 22px 30px; margin: 10px 0; 
+            background: rgba(255, 255, 255, 0.08); border: none; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
+            border-radius: 20px; display: flex; justify-content: center; align-items: center; gap: 18px; 
             text-decoration: none; color: white; font-weight: 900; font-size: 1.1rem; text-transform: uppercase; 
-            transition: all 0.3s ease;
+            transition: 0.3s;
         }
-        .link-card:hover { background: #fff; color: #000; transform: translateY(-3px); }
+        .link-card:hover { background: white; color: black; transform: scale(1.02); }
         .icon { width: 24px; height: 24px; fill: white; transition: fill 0.3s; }
         .link-card:hover .icon { fill: black; }
         .flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10001; opacity: 0; pointer-events: none; }
@@ -80,23 +94,32 @@
 
     <div id="batteryLayer">
         <div class="battery-box"><div class="battery-fill" id="batFill"></div></div>
-        <div class="loading-text">Loading Downfall</div>
+        <div class="loading-text">Loading Downfall...</div>
     </div>
 
-    <div class="shutter shutter-top" id="shutterTop"></div>
-    <div class="shutter shutter-bottom" id="shutterBottom"></div>
-    <div class="flash" id="flash"></div>
-
-    <div class="stage">
-        <video id="video" muted playsinline preload="auto">
-            <source src="journey.mp4" type="video/mp4">
-        </video>
+    <div class="loader-container" id="interactionLayer">
+        <div class="shutter shutter-top" id="shutterTop"></div>
+        <div class="shutter shutter-bottom" id="shutterBottom"></div>
+        <div class="loader-content">
+            <div class="text-line text-upper" id="line1"></div>
+            <div class="eye-container">
+                <svg class="sketch-eye" viewBox="0 0 300 120" width="300" height="120">
+                    <path class="lid-stroke" d="M 20,70 Q 150,10 280,70" />
+                    <path class="lid-stroke" d="M 30,70 Q 150,110 270,70" />
+                    <g class="pupil-scribble" transform="translate(150, 70)">
+                        <path d="M -18,-8 L -5,-18 L 8,-12 L 18,-20 L 12,-2 L 22,8 L 5,15 L 2,25 L -10,15 L -22,5 Z" />
+                        <circle r="10" />
+                    </g>
+                    <path id="inkDrip" class="ink-drip" d="M 150,100 L 150,160" />
+                </svg>
+            </div>
+            <div class="text-line text-lower" id="line2"></div>
+        </div>
     </div>
 
-    <div class="ui-layer" id="intro">
-        <h1 class="hero-title">KOMM MIT<br>AUF MEINE<br>REISE</h1>
-        <div class="scroll-hint" id="scrollHint">SCROLL TO FALL</div>
-    </div>
+    <div class="stage"><video id="video" muted playsinline preload="auto"><source src="journey.mp4" type="video/mp4"></video></div>
+
+    <div class="ui-layer" id="intro"><h1 class="hero-title">KOMM MIT<br>AUF MEINE<br>REISE</h1></div>
 
     <div class="links-wrapper" id="outro">
         <a href="#" class="link-card" onclick="nav(event, 'spotify')">
@@ -112,74 +135,81 @@
             <span>Instagram</span>
         </a>
     </div>
+    <div class="flash" id="flash"></div>
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
-        
         const video = document.getElementById('video');
         const batFill = document.getElementById('batFill');
+        const s1 = "Manchmal ist freier Fall gar nichts Schlechtes, oder?";
+        const s2 = "Wisch mir eine Träne weg";
 
-        // --- 1. SMART LOADER ---
-        let prog = 0;
-        const loadTicks = setInterval(() => {
-            if(prog < 92) {
-                prog += Math.random() * 3;
-                gsap.to(batFill, { width: prog + "%", duration: 0.2 });
-            }
-        }, 100);
+        function split(target, text) {
+            text.split(" ").forEach(w => {
+                let s = document.createElement("span");
+                s.innerText = w; s.className = "word";
+                target.appendChild(s);
+                target.appendChild(document.createTextNode(" "));
+            });
+        }
+        split(document.getElementById('line1'), s1);
+        split(document.getElementById('line2'), s2);
+
+        let lp = 0;
+        const ls = setInterval(() => {
+            if(lp < 90) { lp += Math.random()*5; gsap.to(batFill, {width: lp+"%", duration:0.3}); }
+        }, 200);
 
         window.addEventListener('load', () => {
-            const check = setInterval(() => {
+            const c = setInterval(() => {
                 if(video.readyState >= 3) {
-                    clearInterval(loadTicks); clearInterval(check);
-                    gsap.to(batFill, { width: "100%", duration: 0.3, onComplete: reveal });
+                    clearInterval(ls); clearInterval(c);
+                    gsap.to(batFill, {width:"100%", duration:0.4, onComplete: startIntro});
                 }
             }, 100);
         });
 
-        // --- 2. TRANSITION ---
-        function reveal() {
-            video.play().then(() => video.pause()).catch(()=>{});
-            const tl = gsap.timeline({
-                onComplete: () => {
-                    document.body.style.overflow = "auto"; 
-                    document.body.style.height = "500vh";
-                    document.getElementById('batteryLayer').style.display = "none";
+        function startIntro() {
+            gsap.to("#batteryLayer", {opacity:0, duration:0.6, onComplete: () => {
+                document.getElementById('batteryLayer').style.display="none";
+                gsap.set("#interactionLayer", {visibility:"visible", opacity:1});
+                let itl = gsap.timeline();
+                itl.to("#line1 .word", {opacity:1, filter:"blur(0px)", y:0, stagger:0.1});
+                itl.to(".eye-container", {opacity:1, duration:1}, "-=0.5");
+                itl.to("#line2 .word", {opacity:1, filter:"blur(0px)", y:0, stagger:0.1}, "-=0.5");
+                itl.to("#inkDrip", {strokeDashoffset:0, opacity:1, duration:2.5, onComplete: enableInteraction});
+            }});
+        }
+
+        function enableInteraction() {
+            const trig = () => {
+                window.removeEventListener('click', trig);
+                window.removeEventListener('touchstart', trig);
+                video.play().then(()=>video.pause());
+                let tl = gsap.timeline({onComplete: () => {
+                    document.body.style.overflow="auto"; document.body.style.height="500vh";
                     initScroll();
-                }
-            });
-            tl.to("#batteryLayer", { opacity: 0, duration: 0.6 });
-            tl.to("#shutterTop", { yPercent: -100, duration: 1.4, ease: "expo.inOut" }, "-=0.2");
-            tl.to("#shutterBottom", { yPercent: 100, duration: 1.4, ease: "expo.inOut" }, "<");
-            tl.to("#scrollHint", { opacity: 0.5, duration: 1 });
+                }});
+                tl.to(".loader-content", {scale:1.5, opacity:0, filter:"blur(20px)", duration:0.8});
+                tl.to("#shutterTop", {yPercent:-100, duration:1.2, ease:"expo.inOut"}, "-=0.4");
+                tl.to("#shutterBottom", {yPercent:100, duration:1.2, ease:"expo.inOut"}, "<");
+            };
+            window.addEventListener('click', trig);
+            window.addEventListener('touchstart', trig);
         }
 
-        // --- 3. SCROLL & PERFORMANCE ---
         function initScroll() {
-            // High-Performance Scrubbing
+            video.currentTime = 0.01;
             gsap.to(video, {
-                scrollTrigger: { trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.05 },
-                onUpdate: self => {
-                    if (video.duration) video.currentTime = self.progress * (video.duration - 0.05);
-                }
+                scrollTrigger: {trigger:"body", start:"top top", end:"bottom bottom", scrub:0.1},
+                onUpdate: self => { if(video.duration) video.currentTime = self.progress * (video.duration-0.05); }
             });
-
-            // UI Elements
-            gsap.to("#intro", {
-                scrollTrigger: { trigger: "body", start: "top top", end: "30% top", scrub: true },
-                y: -100, opacity: 0, filter: "blur(20px)"
-            });
-
-            gsap.to("#outro", {
-                scrollTrigger: { trigger: "body", start: "75% top", end: "bottom bottom", scrub: true },
-                opacity: 1, pointerEvents: "all"
-            });
+            let utl = gsap.timeline({scrollTrigger:{trigger:"body", start:"top top", end:"bottom bottom", scrub:0.5}});
+            utl.to("#intro", {opacity:0, scale:1.5, y:-100, duration:0.2}, 0);
+            utl.to("#outro", {opacity:1, pointerEvents:"all", duration:0.2}, 0.15);
         }
 
-        function nav(e, url) { 
-            e.preventDefault(); 
-            gsap.to("#flash", { opacity: 1, duration: 0.4, onComplete: () => console.log("Nav: " + url) }); 
-        }
+        function nav(e, url) { e.preventDefault(); gsap.to("#flash", {opacity:1, duration:0.4, onComplete:()=>console.log(url)}); }
     </script>
 </body>
 </html>
