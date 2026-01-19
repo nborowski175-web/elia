@@ -45,7 +45,9 @@
         .loader-content {
             z-index: 10;
             position: relative;
-            width: 100%; height: 100%;
+            width: 90%; 
+            max-width: 600px;
+            height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
@@ -55,38 +57,40 @@
             font-weight: 600;
             text-align: center;
             z-index: 20;
-            /* Font Rendering fix für Animationen */
-            -webkit-font-smoothing: antialiased; 
+            display: flex; 
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 0.6rem; 
         }
         
         .text-upper {
             font-size: clamp(1rem, 3vw, 1.4rem);
             opacity: 0.8;
-            margin-bottom: 30px;
-            letter-spacing: 0.05em; /* Leichtes Spacing für Lesbarkeit */
+            margin-bottom: 40px; 
         }
 
         .text-lower {
-            font-size: clamp(0.9rem, 2vw, 1.2rem);
-            font-weight: 400;
-            letter-spacing: 0.3em; /* Weites Spacing für den "Cinematic Look" */
-            text-transform: uppercase;
-            color: rgba(255,255,255,0.6);
-            margin-top: 30px;
+            font-size: clamp(1rem, 3vw, 1.4rem);
+            opacity: 0.8;
+            margin-top: 40px; 
         }
 
-        .word { display: inline-block; opacity: 0; filter: blur(5px); transform: translateY(10px); }
+        .word { 
+            display: inline-block; 
+            opacity: 0; 
+            filter: blur(5px); 
+            transform: translateY(10px); 
+        }
 
-        /* --- THE GRUNGE EYE --- */
+        /* --- GRUNGE EYE --- */
         .eye-container {
             position: relative;
-            width: 240px; height: 180px; /* Größer für Details */
+            width: 280px; height: 120px; 
             display: flex; justify-content: center; align-items: center;
             opacity: 0;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
         }
 
-        .grunge-eye {
+        .sketch-eye {
             fill: none;
             stroke: white;
             stroke-linecap: round;
@@ -94,45 +98,41 @@
             overflow: visible;
         }
 
-        /* Lid Striche (Wild und Kritzelig) */
         .lid-stroke {
-            stroke-width: 3;
-            /* Ein unruhiger Filter für die Linien */
-            filter: url(#roughPaper); 
+            stroke-width: 2.5;
+            filter: url(#roughPaper);
         }
 
-        /* Die Pupille (Explosion) */
         .pupil-scribble {
             fill: white;
             stroke: none;
             transform-origin: center;
-            animation: pupil-twitch 0.2s infinite linear alternate;
+            animation: pupil-twitch 3s infinite ease-in-out;
         }
 
-        /* Die Tintentropfen */
         .ink-drip {
-            stroke-width: 4;
+            stroke-width: 3;
             stroke-linecap: round;
-            stroke-dasharray: 150;
-            stroke-dashoffset: 150;
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
             opacity: 0.9;
         }
 
-        /* Animationen */
         .drip-main { animation: bleed 3s infinite ease-in; }
-        .drip-left { animation: bleed 4.5s infinite ease-in 1s; stroke-width: 2.5; }
-        .drip-right { animation: bleed 3.8s infinite ease-in 0.5s; stroke-width: 3; }
+        .drip-side { animation: bleed 4.5s infinite ease-in 1s; stroke-width: 2; }
 
         @keyframes bleed {
-            0% { stroke-dashoffset: 150; opacity: 0; }
+            0% { stroke-dashoffset: 100; opacity: 0; }
             20% { opacity: 1; }
-            80% { stroke-dashoffset: 0; opacity: 0.5; }
+            80% { stroke-dashoffset: 0; opacity: 0.4; }
             100% { stroke-dashoffset: -20; opacity: 0; }
         }
 
         @keyframes pupil-twitch {
-            0% { transform: scale(1) translate(0,0); }
-            100% { transform: scale(1.05) translate(1px, -1px); }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            52% { transform: scale(0.95) translate(1px, 0); }
+            54% { transform: scale(0.95) translate(-1px, 0); }
         }
 
         /* --- STAGE --- */
@@ -145,13 +145,42 @@
         .scroll-hint { position: absolute; bottom: 5vh; font-size: 0.8rem; letter-spacing: 0.3em; color: white; animation: bounce 2s infinite; opacity: 0; }
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
 
-        /* --- LINKS --- */
-        .links-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; perspective: 1000px; pointer-events: none; opacity: 0; }
-        .link-card { width: 85%; max-width: 400px; padding: 20px 24px; margin: 8px 0; background: rgba(255, 255, 255, 0.25); border: 1px solid rgba(255, 255, 255, 0.4); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transform: translate3d(0,0,0); backface-visibility: hidden; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: white; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; opacity: 0; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); transition: background 0.3s; }
-        .link-card:hover { background: white; color: black; box-shadow: 0 10px 40px rgba(255,255,255,0.3); }
+        /* --- LINKS (FIXED CONTRAST) --- */
+        .links-wrapper { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            perspective: 1000px; pointer-events: none; opacity: 0; 
+        }
+
+        .link-card { 
+            width: 85%; max-width: 400px; padding: 20px 24px; margin: 8px 0; 
+            
+            /* NEU: Dunkler Hintergrund für perfekten Kontrast */
+            background: rgba(0, 0, 0, 0.6); 
+            border: 1px solid rgba(255, 255, 255, 0.3); 
+            
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
+            transform: translate3d(0,0,0); backface-visibility: hidden; border-radius: 16px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            text-decoration: none; color: white; font-weight: 800; font-size: 1.1rem; text-transform: uppercase; 
+            opacity: 0; 
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); 
+            transition: background 0.3s, color 0.3s, transform 0.2s; 
+        }
+
+        .link-card:hover { 
+            background: white; 
+            color: black; 
+            box-shadow: 0 10px 50px rgba(255,255,255,0.4); 
+            transform: scale(1.02);
+        }
+        
         .link-content { display: flex; align-items: center; gap: 15px; }
         .icon { width: 24px; height: 24px; fill: white; transition: fill 0.2s; }
+        
+        /* Icon Farbe bei Hover umdrehen */
         .link-card:hover .icon { fill: black; }
+        
         .flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; transform: scaleY(0); transform-origin: bottom; pointer-events: none; }
     </style>
 </head>
@@ -165,31 +194,27 @@
             <div class="text-line text-upper" id="line1"></div>
             
             <div class="eye-container" id="eyeIcon">
-                <svg class="grunge-eye" viewBox="0 0 200 150" width="240" height="180">
+                <svg class="sketch-eye" viewBox="0 0 300 120" width="300" height="120">
                     <defs>
                         <filter id="roughPaper">
-                            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise" />
-                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" />
+                            <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" result="noise" />
+                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" />
                         </filter>
                     </defs>
 
-                    <path class="lid-stroke" d="M 10,80 Q 90,10 190,70" />
-                    <path class="lid-stroke" d="M 20,70 Q 100,20 180,80" style="opacity:0.6; stroke-width:1;" />
+                    <path class="lid-stroke" d="M 20,70 Q 150,10 280,70" />
+                    <path class="lid-stroke" d="M 30,65 Q 150,20 270,65" style="opacity:0.6; stroke-width:1;" />
 
-                    <path class="lid-stroke" d="M 20,80 Q 50,110 90,115" />
-                    <path class="lid-stroke" d="M 110,115 Q 160,110 180,80" />
+                    <path class="lid-stroke" d="M 30,70 Q 150,110 270,70" />
+                    <path class="lid-stroke" d="M 40,75 Q 150,100 260,75" style="opacity:0.6;" />
 
-                    <g class="pupil-scribble" transform="translate(100, 80)">
-                        <path d="M -15,-5 L -5,-15 L 5,-10 L 15,-18 L 10,-2 L 20,5 L 5,12 L 2,22 L -8,12 L -20,5 Z" />
-                        <circle r="8" fill="white" />
+                    <g class="pupil-scribble" transform="translate(150, 70)">
+                        <path d="M -18,-8 L -5,-18 L 8,-12 L 18,-20 L 12,-2 L 22,8 L 5,15 L 2,25 L -10,15 L -22,5 Z" />
+                        <circle r="10" fill="white" />
                     </g>
 
-                    <path class="ink-drip drip-main" d="M 100,115 L 100,160" />
-                    <path class="ink-drip drip-left" d="M 70,105 L 65,150" />
-                    <path class="ink-drip drip-right" d="M 140,100 L 145,150" />
-                    
-                    <circle cx="150" cy="50" r="2" fill="white" class="lid-stroke" />
-                    <circle cx="40" cy="130" r="1.5" fill="white" class="lid-stroke" />
+                    <path class="ink-drip drip-main" d="M 150,100 L 150,160" />
+                    <path class="ink-drip drip-side" d="M 180,90 L 185,140" />
                 </svg>
             </div>
 
@@ -226,7 +251,7 @@
 
         // --- 1. TEXT SETUP ---
         const s1 = "Manchmal ist freier Fall gar nichts Schlechtes, oder?";
-        const s2 = "Wisch mir die Tränen weg";
+        const s2 = "Wisch mir eine Träne weg";
 
         function splitText(target, text) {
             text.split(" ").forEach(word => {
@@ -252,12 +277,10 @@
             if(hasInteracted) return;
             hasInteracted = true;
 
-            // iOS Hack
             if (video.paused) { video.play().then(() => video.pause()).catch(e => {}); }
 
             const tl = gsap.timeline({
                 onComplete: () => {
-                    // SCROLL FREIGABE NACH DEM EFFEKT
                     document.body.style.height = "500vh";
                     document.body.style.overflow = "auto"; 
                     interactionLayer.style.display = "none";
@@ -265,22 +288,21 @@
                 }
             });
 
-            // 1. Content weg
+            // Content weg
             tl.to(".loader-content", { scale: 2, opacity: 0, filter: "blur(20px)", duration: 0.6, ease: "power2.in" });
             
-            // 2. Blenden auf
+            // Blenden auf
             tl.to("#shutterTop", { yPercent: -100, duration: 1.1, ease: "expo.inOut" }, "-=0.3");
             tl.to("#shutterBottom", { yPercent: 100, duration: 1.1, ease: "expo.inOut" }, "<");
             
-            // 3. Hinweis
+            // Hinweis
             tl.to("#scrollHint", { opacity: 0.7, duration: 1, delay: 0.2 });
         }
 
-        // Listener für alle "Wisch"-ähnlichen Aktionen
         window.addEventListener('click', triggerOpen);
         window.addEventListener('touchstart', triggerOpen);
         window.addEventListener('wheel', triggerOpen);
-        window.addEventListener('scroll', triggerOpen); // Fallback
+        window.addEventListener('scroll', triggerOpen);
 
         // --- 4. SCROLL LOGIK ---
         function initScroll() {
@@ -291,7 +313,6 @@
             uiTl.to("#outro", { opacity: 1, pointerEvents: "all", duration: 0.2 }, 0.15);
             uiTl.to(".link-card", { y: 0, scale: 1, opacity: 1, stagger: 0.1, duration: 0.8, ease: "back.out(1.2)", force3D: true }, 0.20);
 
-            // VIDEO PROXY
             const dur = video.duration || 10;
             let proxy = { time: 0 };
             gsap.to(proxy, {
