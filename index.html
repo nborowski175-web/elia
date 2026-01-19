@@ -55,81 +55,61 @@
         .text-lower { font-size: clamp(0.9rem, 2vw, 1.2rem); font-weight: 400; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.5); margin-top: 40px; }
         .word { display: inline-block; opacity: 0; filter: blur(5px); transform: translateY(10px); }
 
-        /* --- ARTISTIC GRUNGE EYE --- */
-        .eye-container {
+        /* --- BATTERY LOADER --- */
+        .battery-container {
             position: relative;
-            width: 200px; height: 140px; /* Breiteres Format */
-            display: flex; justify-content: center; align-items: center;
+            width: 170px;
+            height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             opacity: 0;
             filter: drop-shadow(0 0 8px rgba(255,255,255,0.15));
         }
 
-        .sketch-eye {
-            fill: none;
-            stroke: white;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+        .battery-svg {
             overflow: visible;
         }
 
-        /* Die Outline: Zittrig und unterbrochen */
-        .eye-outline-path {
-            stroke-width: 1.5;
-            stroke-dasharray: 200;
-            stroke-dashoffset: 0;
-            filter: blur(0.6px);
-            opacity: 0.9;
-            animation: nervous-shake 5s infinite ease-in-out;
-        }
-
-        /* Die Pupille: Ein "Tintenklecks" */
-        .eye-pupil-group {
-            transform-origin: center;
-            animation: pupil-breathe 4s infinite ease-in-out;
-        }
-        .pupil-center {
-            fill: white;
-            stroke: none;
-            filter: blur(1px);
-        }
-        .pupil-rays {
-            stroke: white;
-            stroke-width: 0.8;
-            stroke-dasharray: 2 4; /* Strahlenoptik */
-            opacity: 0.6;
-        }
-
-        /* Die Tropfen (Ink Drips) */
-        .ink-drip {
-            stroke-width: 2;
+        .battery-body {
             fill: none;
-            stroke-dasharray: 60;
-            stroke-dashoffset: 60; /* Startet versteckt */
-            opacity: 0.8;
-            filter: blur(0.5px);
+            stroke: white;
+            stroke-width: 2;
+            opacity: 0.9;
+            filter: blur(0.3px);
         }
 
-        /* Animationen: Das "Bluten" */
-        .drip-1 { animation: bleed 4s infinite ease-in 0.5s; }
-        .drip-2 { animation: bleed 5s infinite ease-in 1.5s; stroke-width: 1.2; }
-        .drip-3 { animation: bleed 6s infinite ease-in 0s; stroke-width: 1.5; }
-
-        @keyframes bleed {
-            0% { stroke-dashoffset: 60; opacity: 0; }
-            20% { opacity: 1; }
-            80% { stroke-dashoffset: 0; opacity: 0.3; }
-            100% { stroke-dashoffset: -20; opacity: 0; }
+        .battery-cap {
+            fill: white;
+            opacity: 0.9;
         }
 
-        @keyframes nervous-shake {
-            0%, 100% { transform: scale(1) translate(0,0); }
-            50% { transform: scale(1.02) translate(0.5px, -0.5px); }
-            55% { transform: scale(0.99) translate(-0.5px, 0.5px); }
+        .battery-fill {
+            fill: white;
+            opacity: 0.9;
+            transform-origin: left center;
+            animation: battery-charge 2.2s infinite ease-in-out;
         }
 
-        @keyframes pupil-breathe {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(0.9); }
+        .battery-bolt {
+            fill: none;
+            stroke: white;
+            stroke-width: 2;
+            stroke-linejoin: round;
+            opacity: 0.65;
+            animation: bolt-flicker 1.2s infinite ease-in-out;
+        }
+
+        @keyframes battery-charge {
+            0%   { transform: scaleX(0.05); opacity: 0.25; }
+            40%  { transform: scaleX(0.55); opacity: 0.85; }
+            75%  { transform: scaleX(0.95); opacity: 0.95; }
+            100% { transform: scaleX(0.05); opacity: 0.25; }
+        }
+
+        @keyframes bolt-flicker {
+            0%, 100% { opacity: 0.35; transform: scale(1); }
+            50%      { opacity: 0.9;  transform: scale(1.03); }
         }
 
         /* --- STAGE --- */
@@ -161,18 +141,18 @@
         <div class="loader-content" id="loaderContent">
             <div class="text-line text-upper" id="line1"></div>
             
-            <div class="eye-container" id="eyeIcon">
-                                <svg class="sketch-eye" viewBox="0 0 200 120" width="200" height="120">
-                    <path class="eye-outline-path" d="M 20,60 Q 90,10 180,60 Q 160,50 175,60 Q 90,110 20,60 M 30,60 Q 90,20 160,60" />
-                    
-                    <g class="eye-pupil-group">
-                        <path class="pupil-center" d="M 95,55 L 105,52 L 108,62 L 98,68 L 92,60 Z" />
-                        <path class="pupil-rays" d="M 100,60 L 100,40 M 100,60 L 120,60 M 100,60 L 100,80 M 100,60 L 80,60 M 100,60 L 115,45 M 100,60 L 85,75" />
+            <div class="battery-container" id="eyeIcon">
+                <svg class="battery-svg" viewBox="0 0 220 120" width="200" height="120">
+                    <rect class="battery-body" x="20" y="30" width="160" height="60" rx="10" ry="10"></rect>
+                    <rect class="battery-cap" x="182" y="48" width="14" height="24" rx="4" ry="4"></rect>
+
+                    <!-- Fill (animated via scaleX from left) -->
+                    <g transform="translate(0,0)">
+                        <rect class="battery-fill" x="28" y="38" width="144" height="44" rx="7" ry="7"></rect>
                     </g>
 
-                    <path class="ink-drip drip-1" d="M 100,80 L 100,95 Q 102,105 100,115" />
-                    <path class="ink-drip drip-2" d="M 115,75 L 118,90 Q 116,100 120,110" />
-                    <path class="ink-drip drip-3" d="M 85,75 L 82,90 Q 84,100 80,110" />
+                    <!-- Bolt -->
+                    <path class="battery-bolt" d="M110 38 L94 66 L110 66 L100 92 L126 56 L110 56 Z"></path>
                 </svg>
             </div>
 
