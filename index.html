@@ -56,9 +56,8 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            /* Verteilung mit Platz dazwischen */
             justify-content: space-between;
-            padding: 40px 0; /* Abstand oben/unten */
+            padding: 40px 0;
             pointer-events: none;
         }
 
@@ -83,7 +82,6 @@
             display: flex; justify-content: center; align-items: center;
             opacity: 0;
             will-change: opacity;
-            /* Kein Padding mehr nötig durch space-between */
         }
 
         .grunge-eye-svg { overflow: visible; }
@@ -97,15 +95,15 @@
         }
         .iris-detail { fill: white; stroke: none; }
 
-        /* Die einzelne, schwere Träne */
+        /* DIE EINZELNE TRÄNE (Zurück zur einfachen, schweren Linie) */
         #finalTear {
             stroke: white;
             fill: none;
-            stroke-width: 16; /* Sehr dick für den "Blob"-Effekt am Ende */
+            stroke-width: 14; /* Dick und schwer */
             stroke-linecap: round;
             /* Startzustand: Versteckt */
-            stroke-dasharray: 350;
-            stroke-dashoffset: 350;
+            stroke-dasharray: 300;
+            stroke-dashoffset: 300;
             opacity: 0;
         }
 
@@ -157,7 +155,7 @@
                                 <circle class="iris-detail" r="15" /> <circle class="iris-detail" cx="15" cy="-15" r="8" /> </g>
                         </g>
 
-                        <path id="finalTear" d="M 100,160 Q 95,240 105,290" />
+                        <path id="finalTear" d="M 100,160 L 100,300" />
                     </g>
                 </svg>
             </div>
@@ -209,7 +207,7 @@
         splitText(line1, s1);
         splitText(line2, s2);
 
-        // --- 2. INTRO ANIMATION (Sequenz & Interaktions-Sperre) ---
+        // --- 2. INTRO ANIMATION (Sequenz) ---
         let introTl = gsap.timeline();
         
         // A. Text Oben
@@ -221,19 +219,18 @@
         // C. Text Unten
         introTl.to("#line2 .word", { opacity: 1, filter: "blur(0px)", y: 0, stagger: 0.06, duration: 0.7 }, "-=0.5");
 
-        // D. FINALE: Die Träne fließt (Danach Interaktion erlauben)
+        // D. FINALE: Die Träne fließt (Erst wenn alles da ist)
         introTl.to("#finalTear", {
-            strokeDashoffset: 0,
+            strokeDashoffset: 0, // Zeichnet die Linie
             opacity: 1,
-            duration: 3.5, // Langsamer, schwerer Fluss
+            duration: 3.5,       // Langsamer, schwerer Fluss
             ease: "power2.inOut",
-            onComplete: enableInteraction // HIER wird die Interaktion freigeschaltet
-        }, "+=0.2"); 
+            onComplete: enableInteraction // HIER Interaktion freischalten
+        }, "+=0.2"); // Kurze Pause nach Text
 
 
         // --- 3. INTERAKTION (Erst nach Träne möglich) ---
         function enableInteraction() {
-            // Event Listener werden erst JETZT hinzugefügt
             window.addEventListener('click', triggerOpen);
             window.addEventListener('touchstart', triggerOpen, { passive: true });
             window.addEventListener('wheel', triggerOpen, { passive: true });
