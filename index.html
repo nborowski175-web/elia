@@ -7,7 +7,6 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 
     <style>
@@ -21,18 +20,17 @@
             font-family: 'Inter', sans-serif;
             width: 100%;
             height: 100%;
-            overscroll-behavior: none; /* Wichtig für iOS Bounce-Schutz */
+            overscroll-behavior: none;
             -webkit-font-smoothing: antialiased;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
         body::-webkit-scrollbar { display: none; }
 
-        /* --- FIXED STAGE (100dvh für Mobile Bars) --- */
+        /* --- FIXED CONTAINER --- */
         .fixed-stage {
             position: fixed; top: 0; left: 0; width: 100%; 
-            height: 100vh; /* Fallback */
-            height: 100dvh; /* Dynamic Height */
+            height: 100vh; height: 100dvh; 
             overflow: hidden; z-index: 1;
         }
 
@@ -40,46 +38,66 @@
         video { 
             width: 100%; height: 100%; 
             object-fit: cover; 
-            object-position: center center; /* Immer zentriert */
+            object-position: center center;
             display: block;
-            will-change: filter; /* Hardwarebeschleunigung */
+            will-change: filter; 
         }
 
-        /* --- TEXT LAYER (Positionierung Optimiert) --- */
+        /* --- UI LAYER (TITEL) --- */
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
             display: flex; flex-direction: column; 
             
-            /* Positionierung: Unteres Drittel, damit Gesicht frei bleibt */
+            /* Positionierung: Dynamisch im unteren Drittel */
             justify-content: flex-end; 
-            padding-bottom: 20vh; /* Genug Platz nach unten */
+            padding-bottom: 22vh; 
             align-items: center; 
         }
         
+        /* AESTHETIC TEXT UPDATE */
         .hero-title { 
-            font-size: clamp(2.5rem, 9vw, 8rem); /* Fluid Typography */
+            font-size: clamp(2.8rem, 10vw, 8.5rem); 
             font-weight: 900; 
             text-align: center; 
-            line-height: 0.95; 
-            color: white; 
-            /* Overlay Mode für Verschmelzung mit Video */
-            mix-blend-mode: overlay;
-            text-shadow: 0 0 40px rgba(255,255,255,0.3); 
+            line-height: 0.9; 
+            
+            /* Blending & Gradient für "Verschwimmen" Effekt */
+            background: linear-gradient(to bottom, rgba(255,255,255,1) 30%, rgba(255,255,255,0.7) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent; /* Wichtig damit Gradient sichtbar ist */
+            
+            /* Soft Glow statt harter Schatten für Lesbarkeit */
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3)); 
+            
+            /* Engeres Kerning für modernen Look */
+            letter-spacing: -0.04em;
             margin: 0;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            
+            /* Hardware Beschleunigung */
             will-change: transform, opacity, filter;
         }
 
         .scroll-hint { 
-            /* Sitzt relativ zum Titel Container */
-            font-size: 0.7rem; letter-spacing: 0.4em; 
-            color: rgba(255,255,255,0.8); 
-            animation: bounce 2s infinite; 
+            font-size: 0.75rem; 
+            letter-spacing: 0.3em; 
+            font-weight: 500;
+            color: rgba(255,255,255,0.85); 
             text-transform: uppercase;
-            margin-top: 20px;
+            
+            /* Langsames, organisches Pulsieren */
+            animation: breathe 3s ease-in-out infinite;
+            
+            /* Subtiler Background Blur für Lesbarkeit des kleinen Textes */
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
-        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
+        
+        @keyframes breathe { 
+            0%, 100% { opacity: 0.6; transform: translateY(0); } 
+            50% { opacity: 1; transform: translateY(5px); } 
+        }
 
         /* --- BUTTONS CONTAINER --- */
         .links-container { 
@@ -91,9 +109,8 @@
             pointer-events: none; 
         }
 
-        /* --- BUTTON STYLE (Stabilisiert) --- */
+        /* --- BUTTON STYLE --- */
         .link-card { 
-            /* Grid Layout */
             display: grid;
             grid-template-columns: 24px 1fr 14px;
             align-items: center;
@@ -107,21 +124,20 @@
             margin: 6px 0; 
             
             /* Heller Glass Look */
-            background: rgba(255, 255, 255, 0.22); 
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15); 
+            border: 1px solid rgba(255, 255, 255, 0.25);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
             border-radius: 50px; 
             
             text-decoration: none; color: white; 
             
-            /* Textschatten für Lesbarkeit */
-            text-shadow: 0 2px 10px rgba(0,0,0,0.4);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2); 
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); 
             
-            /* CSS INIT STATE (Verhindert Glitch am Anfang) */
+            /* Init State */
             visibility: hidden; 
             opacity: 0; 
-            transform: translateY(100px); /* Schon unten platziert */
+            transform: translateY(100px); 
             
             transition: background 0.3s, transform 0.2s, border-color 0.3s;
             pointer-events: auto; 
@@ -133,10 +149,9 @@
             text-align: left; opacity: 0.95;
         }
 
-        .icon { width: 22px; height: 22px; fill: white; display: block; opacity: 0.9; }
-        .arrow-icon { width: 14px; height: 14px; fill: rgba(255,255,255,0.6); display: block; transition: transform 0.2s; }
+        .icon { width: 22px; height: 22px; fill: white; display: block; opacity: 0.95; }
+        .arrow-icon { width: 14px; height: 14px; fill: rgba(255,255,255,0.7); display: block; transition: transform 0.2s; }
 
-        /* Hover nur Desktop (kein Mobile Bug) */
         @media (hover: hover) {
             .link-card:hover { 
                 background: rgba(255, 255, 255, 1); 
@@ -155,19 +170,18 @@
             transform-origin: bottom; pointer-events: none; 
         }
 
-        /* --- LANDSCAPE MODE FIX (Handy quer) --- */
+        /* Landscape Fix */
         @media (max-height: 500px) and (orientation: landscape) {
             .hero-title { font-size: 2.2rem; }
-            .ui-layer { padding-bottom: 5vh; justify-content: center; } /* Text mittig im Querformat */
-            .links-container { justify-content: flex-end; padding-bottom: 20px; }
-            .link-card { padding: 8px 20px; margin: 3px 0; min-width: 200px; transform: scale(0.8); }
+            .ui-layer { padding-bottom: 5vh; justify-content: center; }
+            .link-card { padding: 8px 20px; margin: 3px 0; min-width: 200px; transform: scale(0.85); }
         }
     </style>
 </head>
 <body>
 
     <div class="fixed-stage">
-        <video id="video" muted playsinline webkit-playsinline preload="auto">
+        <video id="video" muted playsinline preload="auto">
             <source src="journey.mp4" type="video/mp4">
         </video>
 
@@ -206,20 +220,16 @@
         gsap.registerPlugin(ScrollTrigger);
         const video = document.getElementById('video');
 
-        // Scrollbereich festlegen (350vh für angenehmes Tempo)
         document.body.style.height = "350vh";
 
-        // Smart Video Loading / Waking up
         video.play().then(() => video.pause()).catch(() => {});
 
         function initJourney() {
             let duration = video.duration || 10;
-            // Puffer um schwarzen Screen am Ende zu verhindern (99.8% Stop)
             let safeDuration = duration - 0.1; 
             
-            // --- 1. VIDEO SCRUBBING (High Perf Ticker) ---
+            // --- 1. VIDEO ---
             let videoProxy = { time: 0 };
-
             gsap.to(videoProxy, {
                 time: safeDuration,
                 ease: "none",
@@ -227,11 +237,9 @@
                     trigger: "body",
                     start: "top top",
                     end: "bottom bottom",
-                    scrub: 1, // Smoothness
+                    scrub: 1, 
                 }
             });
-
-            // Ticker updated Video nur wenn nötig (spart Batterie auf Android)
             gsap.ticker.add(() => {
                 if(video.readyState >= 1) {
                     if (Math.abs(video.currentTime - videoProxy.time) > 0.02) {
@@ -240,16 +248,16 @@
                 }
             });
 
-            // --- 2. TEXT FADE OUT (Zentriert & Clean) ---
+            // --- 2. TITEL ---
+            // Faded smooth aus, bleibt zentriert
             gsap.to("#intro", {
                 scrollTrigger: { trigger: "body", start: "top top", end: "30% top", scrub: true },
                 opacity: 0, 
-                scale: 0.95, 
+                scale: 0.9, // Zoomt minimal weg
                 filter: "blur(20px)",
-                y: 0 
             });
 
-            // --- 3. BLUR & BUTTONS (Clean Animation) ---
+            // --- 3. BLUR & BUTTONS ---
             let tlOutro = gsap.timeline({
                 scrollTrigger: {
                     trigger: "body",
@@ -259,14 +267,14 @@
                 }
             });
 
-            // A) Blur
-            tlOutro.to(video, { filter: "blur(20px)", ease: "power1.inOut" }, 0);
+            // A) Hintergrund Blur
+            tlOutro.to(video, { filter: "blur(25px)", ease: "power1.inOut" }, 0);
 
-            // B) Buttons: Verwendung von fromTo + autoAlpha für garantierten Reset
+            // B) Buttons Reinfahren
             tlOutro.fromTo(".link-card", 
                 { 
                     autoAlpha: 0, 
-                    y: 80, // Kommen von unten
+                    y: 80, 
                     scale: 0.95 
                 },
                 {
@@ -280,7 +288,6 @@
             0.1);
         }
 
-        // Init Check mit Fallback für langsame Verbindungen
         if (video.readyState >= 1) {
             initJourney();
         } else {
