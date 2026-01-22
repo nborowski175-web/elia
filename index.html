@@ -28,8 +28,9 @@
             position: fixed; top: 0; left: 0; width: 100%; 
             height: 100vh; height: 100dvh; 
             overflow: hidden; z-index: 1;
-            background: #000;
-            /* WICHTIG FÜR SAFARI PERFORMANCE */
+            background: #000; /* Fallback Schwarz */
+            
+            /* Hardware Beschleunigung erzwingen */
             transform: translateZ(0);
             -webkit-transform: translateZ(0);
             backface-visibility: hidden;
@@ -40,12 +41,14 @@
             width: 100%; height: 100%; 
             object-fit: cover; object-position: center center;
             display: block; 
+            /* Startzustand: Unsichtbar aber existent */
             opacity: 0; 
-            transition: opacity 0.8s ease;
+            transition: opacity 1.5s ease-out; /* Sehr weiches Einblenden */
             will-change: transform;
         }
         
-        video.ready { opacity: 1; }
+        /* Klasse für Sichtbarkeit */
+        video.is-active { opacity: 1; }
 
         /* Loader */
         .loader {
@@ -55,16 +58,16 @@
             border-top-color: white; border-radius: 50%;
             animation: spin 0.8s linear infinite;
             z-index: 3; pointer-events: none; 
-            opacity: 0; transition: opacity 0.3s;
+            opacity: 1; transition: opacity 0.5s;
         }
-        .loader.visible { opacity: 1; }
+        .loader.hidden { opacity: 0; }
         @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 
         /* UI */
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
-            transform: translateZ(0); 
+            transform: translateZ(0);
         }
         
         .hero-title { 
@@ -123,7 +126,7 @@
             background: white; z-index: 10001; transform: scaleY(0); 
             transform-origin: bottom; pointer-events: none; 
         }
-
+        
         @media (max-height: 500px) and (orientation: landscape) {
             .hero-title { font-size: 2.5rem; top: 50%; }
             .link-card { padding: 10px 24px; margin: 5px 0; min-width: 220px; transform: scale(0.9); }
@@ -175,102 +178,96 @@
 
         const video = document.getElementById('video');
         const loader = document.getElementById('loader');
-
-        // Scrollhöhe für die Timeline
-        document.body.style.height = "350vh"; 
-        loader.classList.add('visible');
-
-        /* ================================================================
-           SAFARI & ECOSIA BULLETPROOF ENGINE
-           ================================================================
-        */
-
-        let isVideoReady = false;
         
-        // 1. Initialer Load-Trigger
-        const onVideoReady = () => {
-            if (isVideoReady) return;
-            isVideoReady = true;
+        // Scrollhöhe definieren
+        document.body.style.height = "350vh"; 
 
-            loader.classList.remove('visible');
-            video.classList.add('ready');
+        /* --- FORCE LOAD ENGINE --- */
+        let isReady = false;
+
+        // Funktion zum Starten der Animation
+        function startJourney() {
+            if (isReady) return;
+            isReady = true;
+
+            // Video einblenden, Loader ausblenden
+            video.classList.add('is-active');
+            loader.classList.add('hidden');
             
-            // Startet die Scroll-Animation
             initScrollLogic();
-        };
+        }
 
-        // 2. Metadaten Check (Schnellste Methode)
+        // Strategie 1: Sofortiges "Vorladen" erzwingen
+        video.load();
+
+        // Strategie 2: Metadaten Event
         video.addEventListener('loadedmetadata', () => {
-            // Setze Zeit auf 0.001 um schwarzen Screen zu vermeiden ohne play() zu nutzen
+            // Setze Zeit minimal vorwärts, um Frame-Rendering zu erzwingen
             video.currentTime = 0.001;
-            onVideoReady();
         });
 
-        // 3. Fallback für langsame Verbindungen
-        if (video.readyState >= 1) onVideoReady();
-        
-        // 4. Force Check für Ecosia/Safari, die Events verschlucken
-        setTimeout(() => {
-            if (!isVideoReady && video.readyState >= 1) onVideoReady();
-            // Notfall: Nach 3 Sekunden erzwingen wir das Einblenden
-            else if (!isVideoReady) { 
-                console.log("Forcing fade-in");
-                onVideoReady(); 
+        // Strategie 3: Frame ist bereit
+        video.addEventListener('canplay', startJourney);
+
+        // Strategie 4: Benutzerinteraktion (Touch/Click) als Fallback für blockierte Browser
+        // Dies ist der "Ecosia/Safari im Stromsparmodus" Fix
+        const forceWakeup = () => {
+            if (!isReady) {
+                video.load(); // Erzwinge neu Laden
+                video.currentTime = 0.001;
             }
-        }, 3000);
+            // Listener entfernen nach erstem Klick
+            window.removeEventListener('touchstart', forceWakeup);
+            window.removeEventListener('click', forceWakeup);
+        };
+        window.addEventListener('touchstart', forceWakeup);
+        window.addEventListener('click', forceWakeup);
+
+        // Strategie 5: Timeout (Notfallschirm) - Nach 1.5sek einfach anzeigen
+        setTimeout(() => {
+            if (!isReady && video.readyState > 0) startJourney();
+        }, 1500);
 
 
-        /* ================================================================
-           FLUID SCROLL LOOP (FPS UNLOCKED)
-           ================================================================
-        */
+        /* --- FLUID SCROLL LOGIC --- */
         function initScrollLogic() {
             const duration = video.duration || 10;
             const safeDuration = duration - 0.1;
             
-            // Trennung von Ziel-Wert (Scroll) und Ist-Wert (Video)
             let targetTime = 0;
             let currentTime = 0;
 
-            // ScrollTrigger berechnet NUR die Ziel-Zeit
+            // Mapping: Scrollposition -> Videozeit
             ScrollTrigger.create({
-                trigger: "body",
-                start: "top top",
-                end: "bottom bottom",
-                scrub: 0, 
+                trigger: "body", start: "top top", end: "bottom bottom", scrub: 0,
                 onUpdate: self => {
                     targetTime = self.progress * safeDuration;
                 }
             });
 
-            // Der Render-Loop nutzt requestAnimationFrame für native Browser-Performance
-            // Das umgeht GSAP Sync Probleme in Safari
+            // Eigener Render-Loop für maximale FPS
             function render() {
-                // Lerp Faktor: 0.1 = weich, 0.2 = direkter. 0.08 ist cinematic.
+                // Weiche Interpolation (0.1 = schneller/reaktiver, 0.05 = langsamer/weicher)
                 currentTime += (targetTime - currentTime) * 0.08;
 
-                // Safari Hack: Nur updaten wenn nötig & Runden auf 3 Dezimalstellen
-                // Das verhindert, dass Safari den Decoder überlastet
-                if (Math.abs(currentTime - video.currentTime) > 0.005) {
+                // Performance-Optimierung: Nur setzen, wenn Änderung signifikant ist
+                if (Math.abs(currentTime - video.currentTime) > 0.002) {
+                    // toFixed(3) löst Safari Decoder Bugs
                     video.currentTime = Number(currentTime.toFixed(3));
                 }
 
                 requestAnimationFrame(render);
             }
-            
-            // Startet den Loop
             render();
 
-            // --- ANIMATIONEN ---
+            // UI Animationen
             gsap.to("#intro", {
                 scrollTrigger: { trigger: "body", start: "top top", end: "30% top", scrub: true },
                 opacity: 0, scale: 0.95, filter: "blur(15px)",
             });
 
             let tlOutro = gsap.timeline({
-                scrollTrigger: {
-                    trigger: "body", start: "55% top", end: "95% bottom", scrub: 1
-                }
+                scrollTrigger: { trigger: "body", start: "55% top", end: "95% bottom", scrub: 1 }
             });
 
             tlOutro.to(video, { filter: "blur(25px)", ease: "power1.inOut" }, 0);
