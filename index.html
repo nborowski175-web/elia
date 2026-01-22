@@ -20,37 +20,32 @@
             width: 100%; height: 100%;
             overscroll-behavior: none;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
             scrollbar-width: none; -ms-overflow-style: none;
         }
         body::-webkit-scrollbar { display: none; }
 
-        /* --- STAGE --- */
         .fixed-stage {
             position: fixed; top: 0; left: 0; width: 100%; 
             height: 100vh; height: 100dvh; 
             overflow: hidden; z-index: 1;
             background: #000;
-            /* Zwingt Hardware-Beschleunigung auf allen Browsern */
-            transform: translate3d(0,0,0);
-            -webkit-transform: translate3d(0,0,0);
+            /* WICHTIG FÜR SAFARI PERFORMANCE */
+            transform: translateZ(0);
+            -webkit-transform: translateZ(0);
             backface-visibility: hidden;
             perspective: 1000px;
         }
 
-        /* Video liegt unten */
         video { 
             width: 100%; height: 100%; 
             object-fit: cover; object-position: center center;
             display: block; 
-            /* Wichtig für Ecosia/Chrome: */
-            will-change: transform; 
             opacity: 0; 
-            transition: opacity 0.5s ease-out;
+            transition: opacity 0.8s ease;
+            will-change: transform;
         }
         
-        /* Sichtbar-Klasse */
-        video.is-visible { opacity: 1; }
+        video.ready { opacity: 1; }
 
         /* Loader */
         .loader {
@@ -65,11 +60,11 @@
         .loader.visible { opacity: 1; }
         @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 
-        /* --- UI LAYER --- */
+        /* UI */
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
-            transform: translate3d(0,0,0);
+            transform: translateZ(0); 
         }
         
         .hero-title { 
@@ -77,33 +72,22 @@
             top: 65%; left: 50%; transform: translate(-50%, -50%);
             width: 100%; text-align: center;
             font-size: clamp(3.5rem, 11vw, 9.5rem); 
-            font-weight: 900; 
-            line-height: 0.9; 
-            letter-spacing: -0.04em; 
-            color: rgba(255, 255, 255, 0.85); 
-            mix-blend-mode: overlay; 
+            font-weight: 900; line-height: 0.9; letter-spacing: -0.04em; 
+            color: rgba(255, 255, 255, 0.85); mix-blend-mode: overlay; 
             text-shadow: 0 0 30px rgba(255,255,255,0.25), 0 10px 50px rgba(0,0,0,0.2);
-            margin: 0;
-            will-change: transform, opacity;
+            margin: 0; will-change: transform, opacity;
         }
 
         .scroll-hint { 
-            position: absolute; 
-            bottom: 10dvh; left: 0; width: 100%; text-align: center;
+            position: absolute; bottom: 10dvh; left: 0; width: 100%; text-align: center;
             font-size: 0.75rem; letter-spacing: 0.35em; font-weight: 700;
             color: rgba(255,255,255,0.9); text-transform: uppercase;
             animation: breathe 2.5s ease-in-out infinite;
-            text-shadow: 0 2px 15px rgba(0,0,0,0.6);
-            pointer-events: none;
+            text-shadow: 0 2px 15px rgba(0,0,0,0.6); pointer-events: none;
         }
-        
-        @keyframes breathe { 
-            0% { opacity: 0.5; transform: translateY(0); } 
-            50% { opacity: 1; transform: translateY(10px); } 
-            100% { opacity: 0.5; transform: translateY(0); } 
-        }
+        @keyframes breathe { 0% { opacity: 0.5; transform: translateY(0); } 50% { opacity: 1; transform: translateY(10px); } 100% { opacity: 0.5; transform: translateY(0); } }
 
-        /* --- BUTTONS --- */
+        /* Links */
         .links-container { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 20; display: flex; flex-direction: column; 
@@ -112,37 +96,23 @@
         }
 
         .link-card { 
-            display: grid; 
-            grid-template-columns: 32px 1fr 20px; 
-            align-items: center; gap: 25px;
+            display: grid; grid-template-columns: 32px 1fr 20px; align-items: center; gap: 25px;
             width: auto; min-width: 320px; max-width: 420px;
             padding: 24px 36px; margin: 14px 0; 
-            background: rgba(0, 0, 0, 0.4); 
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
-            border-radius: 60px; 
-            text-decoration: none; color: white; 
+            border-radius: 60px; text-decoration: none; color: white; 
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); 
             visibility: hidden; opacity: 0; transform: translateY(100px); 
             transition: background 0.3s, transform 0.2s, border-color 0.3s;
-            pointer-events: auto; 
-            will-change: transform;
+            pointer-events: auto; will-change: transform;
         }
-
-        .link-text {
-            font-weight: 700; font-size: 1.2rem; 
-            text-transform: uppercase; letter-spacing: 0.05em;
-            text-align: left; opacity: 1;
-        }
-
-        .icon { width: 32px; height: 32px; fill: white; display: block; opacity: 1; }
+        .link-text { font-weight: 700; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; }
+        .icon { width: 32px; height: 32px; fill: white; display: block; }
         .arrow-icon { width: 20px; height: 20px; fill: rgba(255,255,255,0.7); display: block; transition: transform 0.2s; }
 
         @media (hover: hover) {
-            .link-card:hover { 
-                background: rgba(255, 255, 255, 1); border-color: white;
-                transform: scale(1.03) !important;
-            }
+            .link-card:hover { background: rgba(255, 255, 255, 1); border-color: white; transform: scale(1.03) !important; }
             .link-card:hover .link-text { color: black; }
             .link-card:hover .icon { fill: black; }
             .link-card:hover .arrow-icon { fill: black; transform: translateX(5px); }
@@ -152,7 +122,6 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: white; z-index: 10001; transform: scaleY(0); 
             transform-origin: bottom; pointer-events: none; 
-            will-change: transform;
         }
 
         @media (max-height: 500px) and (orientation: landscape) {
@@ -166,7 +135,7 @@
     <div class="fixed-stage">
         <div class="loader" id="loader"></div>
         
-        <video id="video" muted playsinline webkit-playsinline loop preload="auto">
+        <video id="video" muted playsinline webkit-playsinline preload="auto">
             <source src="journey.mp4" type="video/mp4">
         </video>
 
@@ -203,100 +172,96 @@
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
-        // Deaktiviere GSAP Lag Smoothing, um Ruckler bei Scroll-Sync zu vermeiden
-        gsap.ticker.lagSmoothing(0);
-        
+
         const video = document.getElementById('video');
         const loader = document.getElementById('loader');
 
+        // Scrollhöhe für die Timeline
         document.body.style.height = "350vh"; 
         loader.classList.add('visible');
 
-        // --- BROWSER-SAFE START ENGINE ---
+        /* ================================================================
+           SAFARI & ECOSIA BULLETPROOF ENGINE
+           ================================================================
+        */
 
-        // Funktion: Video sichtbar machen, sobald EIN Frame da ist
-        const showVideo = () => {
-            if (!video.classList.contains('is-visible')) {
-                loader.classList.remove('visible');
-                video.classList.add('is-visible');
-                initScrollLink();
-            }
-        };
-
-        // 1. Kickstart: Versuche Video kurz abzuspielen (für Ecosia/Chrome nötig)
-        const kickstart = async () => {
-            try {
-                // Setze Startzeit manuell
-                video.currentTime = 0.01;
-                await video.play();
-                video.pause();
-                showVideo();
-            } catch (err) {
-                // Falls Autoplay blockiert, erzwingen wir trotzdem das Anzeigen
-                console.log("Autoplay forced handled");
-                showVideo();
-            }
-        };
-
-        // 2. Event Listener: Überwache ALLE Möglichkeiten, wann das Video bereit sein könnte
-        // readyState 1 = HAVE_METADATA (reicht uns, um schwarz zu vermeiden)
-        const checkReady = () => {
-            if (video.readyState >= 1) showVideo();
-        };
-
-        video.addEventListener('loadedmetadata', checkReady);
-        video.addEventListener('loadeddata', checkReady);
-        video.addEventListener('canplay', checkReady);
+        let isVideoReady = false;
         
-        // Loop Check für langsame Netzwerke
-        let checkInterval = setInterval(() => {
-            if (video.readyState >= 1) {
-                showVideo();
-                clearInterval(checkInterval);
-            }
-        }, 200);
+        // 1. Initialer Load-Trigger
+        const onVideoReady = () => {
+            if (isVideoReady) return;
+            isVideoReady = true;
 
-        // Failsafe: Nach 4 Sekunden erzwingen wir das Anzeigen (nie mehr Blackscreen)
-        setTimeout(() => {
-            clearInterval(checkInterval);
-            showVideo();
-        }, 4000);
-
-        // Starte den Prozess
-        kickstart();
-
-
-        // --- SCROLL ENGINE (120Hz Optimized) ---
-        function initScrollLink() {
-            let duration = video.duration || 10;
-            // Kleiner Puffer am Ende, damit es nicht springt
-            let safeDuration = duration - 0.1; 
+            loader.classList.remove('visible');
+            video.classList.add('ready');
             
-            let state = { current: 0, target: 0 };
+            // Startet die Scroll-Animation
+            initScrollLogic();
+        };
 
+        // 2. Metadaten Check (Schnellste Methode)
+        video.addEventListener('loadedmetadata', () => {
+            // Setze Zeit auf 0.001 um schwarzen Screen zu vermeiden ohne play() zu nutzen
+            video.currentTime = 0.001;
+            onVideoReady();
+        });
+
+        // 3. Fallback für langsame Verbindungen
+        if (video.readyState >= 1) onVideoReady();
+        
+        // 4. Force Check für Ecosia/Safari, die Events verschlucken
+        setTimeout(() => {
+            if (!isVideoReady && video.readyState >= 1) onVideoReady();
+            // Notfall: Nach 3 Sekunden erzwingen wir das Einblenden
+            else if (!isVideoReady) { 
+                console.log("Forcing fade-in");
+                onVideoReady(); 
+            }
+        }, 3000);
+
+
+        /* ================================================================
+           FLUID SCROLL LOOP (FPS UNLOCKED)
+           ================================================================
+        */
+        function initScrollLogic() {
+            const duration = video.duration || 10;
+            const safeDuration = duration - 0.1;
+            
+            // Trennung von Ziel-Wert (Scroll) und Ist-Wert (Video)
+            let targetTime = 0;
+            let currentTime = 0;
+
+            // ScrollTrigger berechnet NUR die Ziel-Zeit
             ScrollTrigger.create({
                 trigger: "body",
                 start: "top top",
                 end: "bottom bottom",
-                scrub: 0, // Wir machen das Scrubbing manuell im Ticker
+                scrub: 0, 
                 onUpdate: self => {
-                    state.target = self.progress * safeDuration;
+                    targetTime = self.progress * safeDuration;
                 }
             });
 
-            // Der Herzschlag der Animation
-            gsap.ticker.add(() => {
-                // Lerp für Weichheit (0.08 ist der "Sweet Spot" für Gewicht)
-                state.current += (state.target - state.current) * 0.08; 
-                
-                // Wir aktualisieren nur, wenn Video bereit ist UND wir nicht seeken
-                // Die Toleranz 0.001 sorgt für weniger CPU Last im Stillstand
-                if (video.readyState >= 1 && Math.abs(state.current - video.currentTime) > 0.005) {
-                    video.currentTime = state.current;
-                }
-            });
+            // Der Render-Loop nutzt requestAnimationFrame für native Browser-Performance
+            // Das umgeht GSAP Sync Probleme in Safari
+            function render() {
+                // Lerp Faktor: 0.1 = weich, 0.2 = direkter. 0.08 ist cinematic.
+                currentTime += (targetTime - currentTime) * 0.08;
 
-            // Animationen
+                // Safari Hack: Nur updaten wenn nötig & Runden auf 3 Dezimalstellen
+                // Das verhindert, dass Safari den Decoder überlastet
+                if (Math.abs(currentTime - video.currentTime) > 0.005) {
+                    video.currentTime = Number(currentTime.toFixed(3));
+                }
+
+                requestAnimationFrame(render);
+            }
+            
+            // Startet den Loop
+            render();
+
+            // --- ANIMATIONEN ---
             gsap.to("#intro", {
                 scrollTrigger: { trigger: "body", start: "top top", end: "30% top", scrub: true },
                 opacity: 0, scale: 0.95, filter: "blur(15px)",
@@ -309,7 +274,6 @@
             });
 
             tlOutro.to(video, { filter: "blur(25px)", ease: "power1.inOut" }, 0);
-
             tlOutro.fromTo(".link-card", 
                 { autoAlpha: 0, y: 60, scale: 0.95 },
                 { autoAlpha: 1, y: 0, scale: 1, stagger: 0.12, ease: "power2.out", immediateRender: false }, 
