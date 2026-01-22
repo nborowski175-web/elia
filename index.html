@@ -66,7 +66,6 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
             transform: translateZ(0);
-            display: flex; flex-direction: column; /* Neu: Für Web-Layout */
         }
         
         .hero-title { 
@@ -80,25 +79,31 @@
             margin: 0; will-change: transform, opacity;
         }
 
-        /* WEB-FIX: Titel im Browser oben links platzieren */
+        /* WEB-FIX: Nur am PC/Desktop den Titel verschieben */
         @media (min-width: 1025px) {
             .hero-title {
-                position: relative; top: 10vh; left: 5vw; 
-                transform: none; text-align: left;
-                font-size: 7vw; max-width: 60%;
+                top: 20%; left: 25%; /* Kopf freihalten */
+                text-align: left;
+                font-size: 6vw;
+                width: auto;
             }
         }
 
         .scroll-hint { 
             position: absolute; bottom: 10dvh; left: 0; width: 100%; text-align: center;
-            font-size: 1rem; letter-spacing: 0.35em; font-weight: 800; /* Fetter für Web */
+            font-size: 0.75rem; letter-spacing: 0.35em; font-weight: 700;
             color: rgba(255,255,255,0.9); text-transform: uppercase;
             animation: breathe 2.5s ease-in-out infinite;
             text-shadow: 0 2px 15px rgba(0,0,0,0.6); pointer-events: none;
         }
+        /* Desktop: Scroll-Hint etwas deutlicher */
+        @media (min-width: 1025px) {
+            .scroll-hint { font-size: 1.2rem; font-weight: 900; }
+        }
+
         @keyframes breathe { 0% { opacity: 0.5; transform: translateY(0); } 50% { opacity: 1; transform: translateY(10px); } 100% { opacity: 0.5; transform: translateY(0); } }
 
-        /* --- LINKS CONTAINER --- */
+        /* --- LINKS --- */
         .links-container { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 20; display: flex; flex-direction: column; 
@@ -106,11 +111,10 @@
             perspective: 1000px; pointer-events: none; 
         }
 
-        #outro { display: flex; flex-direction: column; align-items: center; }
-
-        /* Web-Layout für Buttons am PC */
+        /* Web-Buttons: Nebeneinander am PC */
+        .outro-wrapper { display: flex; flex-direction: column; align-items: center; }
         @media (min-width: 1025px) {
-            #outro { flex-direction: row; gap: 30px; }
+            .outro-wrapper { flex-direction: row; gap: 40px; }
         }
 
         .link-card { 
@@ -128,20 +132,19 @@
 
         .link-text { font-weight: 700; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; }
         .icon { width: 32px; height: 32px; fill: white; display: block; }
-        .arrow-icon { width: 20px; height: 20px; fill: rgba(255,255,255,0.7); display: block; }
+        .arrow-icon { width: 20px; height: 20px; fill: rgba(255,255,255,0.7); display: block; transition: transform 0.2s; }
 
         .legal-footer {
-            margin-top: 40px; display: flex; gap: 20px;
-            visibility: hidden; opacity: 0; transform: translateY(20px); pointer-events: auto;
-        }
-        .legal-link {
-            color: rgba(255, 255, 255, 0.6); font-size: 0.75rem; text-decoration: none;
-            text-transform: uppercase; letter-spacing: 0.1em;
+            position: absolute; bottom: 30px;
+            display: flex; gap: 20px;
+            visibility: hidden; opacity: 0;
+            transform: translateY(20px);
+            pointer-events: auto;
         }
 
         @media (hover: hover) {
-            .link-card:hover { background: rgba(255, 255, 255, 1); border-color: white; transform: scale(1.03) !important; }
-            .link-card:hover .link-text, .link-card:hover .icon, .link-card:hover .arrow-icon { fill: black; color: black; }
+            .link-card:hover { background: rgba(255, 255, 255, 1); border-color: white; transform: scale(1.05) !important; }
+            .link-card:hover .link-text, .link-card:hover .icon, .link-card:hover .arrow-icon { color: black; fill: black; }
         }
         
         .flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10001; transform: scaleY(0); transform-origin: bottom; pointer-events: none; }
@@ -163,19 +166,19 @@
         <video id="video" muted playsinline webkit-playsinline preload="auto"></video>
 
         <div class="links-container">
-            <div id="outro">
-                <a href="SPOTIFY_LINK" class="link-card" onclick="nav(event, this.href)">
+            <div class="outro-wrapper" id="outro">
+                <a href="#" class="link-card" onclick="nav(event, 'http://spotify.com')">
                     <svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg>
                     <span class="link-text">Spotify</span>
                     <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
                 </a>
-                <a href="INSTA_LINK" class="link-card" onclick="nav(event, this.href)">
+                <a href="#" class="link-card" onclick="nav(event, 'http://instagram.com')">
                     <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
                     <span class="link-text">Instagram</span>
                     <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
                 </a>
             </div>
-            <div class="legal-footer">
+            <div class="legal-footer" id="legal">
                 <a href="impressum.html" class="legal-link">Impressum</a>
                 <a href="datenschutz.html" class="legal-link">Datenschutz</a>
             </div>
@@ -192,26 +195,18 @@
         
         document.body.style.height = "400vh"; 
 
-        /* --- VIDEO WEICHE --- */
+        // --- VIDEO WEICHE ---
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const connection = navigator.connection || {};
         
         let videoSrc = isMobile ? 'journey_mid.mp4' : 'journey_web.mp4';
-        if (connection.saveData || /2g|3g/.test(connection.effectiveType)) {
-            videoSrc = 'journey_low.mp4';
-        }
+        if (connection.saveData || /2g|3g/.test(connection.effectiveType)) { videoSrc = 'journey_low.mp4'; }
 
         function loadVideo() {
             const req = new XMLHttpRequest();
             req.open('GET', videoSrc, true);
             req.responseType = 'blob';
-
-            req.onprogress = (e) => {
-                if (e.lengthComputable) {
-                    progressText.innerText = Math.floor((e.loaded / e.total) * 100) + "%";
-                }
-            };
-
+            req.onprogress = (e) => { if (e.lengthComputable) progressText.innerText = Math.floor((e.loaded / e.total) * 100) + "%"; };
             req.onload = function() {
                 if (this.status === 200) {
                     video.src = URL.createObjectURL(this.response);
@@ -231,21 +226,15 @@
         function initScroll() {
             ScrollTrigger.create({
                 trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.05,
-                onUpdate: self => {
-                    if (video.duration) video.currentTime = self.progress * (video.duration - 0.1);
-                }
+                onUpdate: self => { if (video.duration) video.currentTime = self.progress * (video.duration - 0.1); }
             });
 
             gsap.to("#intro", { scrollTrigger: { trigger: "body", start: "top top", end: "25% top", scrub: true }, opacity: 0, scale: 0.9 });
             gsap.to(".link-card", { scrollTrigger: { trigger: "body", start: "65% top", end: "95% bottom", scrub: true }, autoAlpha: 1, y: 0, stagger: 0.1 });
-            gsap.to(".legal-footer", { scrollTrigger: { trigger: "body", start: "85% top", end: "100% bottom", scrub: true }, autoAlpha: 1, y: 0 });
+            gsap.to("#legal", { scrollTrigger: { trigger: "body", start: "85% top", end: "100% bottom", scrub: true }, autoAlpha: 1, y: 0 });
         }
 
-        function nav(e, url) { 
-            e.preventDefault(); 
-            gsap.to(".flash", { scaleY: 1, duration: 0.4, onComplete: () => window.location.href = url }); 
-        }
-
+        function nav(e, url) { e.preventDefault(); gsap.to(".flash", { scaleY: 1, duration: 0.4, onComplete: () => window.location.href = url }); }
         loadVideo();
     </script>
 </body>
