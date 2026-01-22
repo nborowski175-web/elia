@@ -7,6 +7,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 
     <style>
@@ -18,38 +19,40 @@
             background-color: var(--bg-color);
             font-family: 'Inter', sans-serif;
             width: 100%; height: 100%;
-            overscroll-behavior: none;
+            overscroll-behavior: none; /* Verhindert "Bouncing" beim Scrollen */
             -webkit-font-smoothing: antialiased;
             scrollbar-width: none; -ms-overflow-style: none;
         }
         body::-webkit-scrollbar { display: none; }
 
+        /* Die Bühne */
         .fixed-stage {
             position: fixed; top: 0; left: 0; width: 100%; 
             height: 100vh; height: 100dvh; 
             overflow: hidden; z-index: 1;
             background: #000;
-            /* Hardware-Beschleunigung erzwingen */
-            transform: translate3d(0, 0, 0);
+            transform: translate3d(0, 0, 0); /* Hardware-Beschleunigung */
             backface-visibility: hidden;
             perspective: 1000px;
         }
 
         video { 
             width: 100%; height: 100%; 
-            object-fit: cover; object-position: center center;
+            /* WICHTIG: 'cover' sorgt dafür, dass dein zugeschnittenes Video 
+               immer den ganzen Screen füllt, ohne Balken. */
+            object-fit: cover; 
+            object-position: center center;
             display: block; 
             opacity: 0; 
-            transition: opacity 0.8s ease-out; /* Schnelleres Einblenden */
+            transition: opacity 0.8s ease-out;
             will-change: transform;
             transform: translate3d(0, 0, 0); 
         }
         
         video.is-active { opacity: 1; }
 
-        /* --- LOADER --- */
+        /* --- LOADER (Ladekreis) --- */
         .loader-container {
-            /* 45% Höhe: Perfekt mittig zwischen Mond und Schrift */
             position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
             z-index: 100; display: flex; flex-direction: column; align-items: center;
             transition: opacity 0.5s; pointer-events: none;
@@ -68,7 +71,7 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* UI */
+        /* --- UI LAYER (Texte) --- */
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
@@ -95,7 +98,7 @@
         }
         @keyframes breathe { 0% { opacity: 0.5; transform: translateY(0); } 50% { opacity: 1; transform: translateY(10px); } 100% { opacity: 0.5; transform: translateY(0); } }
 
-        /* Links */
+        /* --- LINKS CONTAINER --- */
         .links-container { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 20; display: flex; flex-direction: column; 
@@ -108,7 +111,7 @@
             width: auto; min-width: 320px; max-width: 420px;
             padding: 24px 36px; margin: 14px 0; 
             
-            /* High-End Design */
+            /* High-End Design: Frosted Glass */
             background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
             
@@ -123,7 +126,7 @@
         .icon { width: 32px; height: 32px; fill: white; display: block; }
         .arrow-icon { width: 20px; height: 20px; fill: rgba(255,255,255,0.7); display: block; transition: transform 0.2s; }
 
-        /* --- LEGAL FOOTER --- */
+        /* --- LEGAL FOOTER (Impressum etc) --- */
         .legal-footer {
             margin-top: 40px;
             display: flex; gap: 20px;
@@ -139,6 +142,7 @@
         }
         .legal-link:hover { color: white; }
 
+        /* Hover Effekte für Desktop */
         @media (hover: hover) {
             .link-card:hover { background: rgba(255, 255, 255, 1); border-color: white; transform: scale(1.03) !important; }
             .link-card:hover .link-text { color: black; }
@@ -146,6 +150,7 @@
             .link-card:hover .arrow-icon { fill: black; transform: translateX(5px); }
         }
         
+        /* White Flash Transition */
         .flash { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: white; z-index: 10001; transform: scaleY(0); 
@@ -212,38 +217,48 @@
         const loaderContainer = document.getElementById('loaderContainer');
         const progressText = document.getElementById('progressText');
         
+        // Simuliert eine sehr lange Scroll-Strecke
         document.body.style.height = "350vh"; 
 
-        /* --- 1. INTELLIGENTE VIDEO-WAHL --- */
-        // Standard: IMMER HD für maximale Qualität
-        let videoSrc = 'journey.mp4'; 
+        /* --- 1. INTELLIGENTE 3-WEGE-VIDEO-LOGIK --- */
+        let videoSrc = 'journey_high.mp4'; // Default: Beste Quali für Desktop/WiFi
         
-        // Netz-Check: Nur bei explizit langsamer Verbindung (2G/Slow-2G) oder Data-Saver
+        // Geräte- & Netz-Checks
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        let forceLowQuality = false;
         
+        let isSlow = false;
         if (connection) {
-            // Nur wechseln, wenn es wirklich nötig ist (Funkloch oder Sparmodus)
-            if (connection.saveData === true || connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
-                forceLowQuality = true;
+            // Prüfung auf langsames Netz (2G) oder Datensparmodus
+            if (connection.saveData === true || /2g|slow-2g/.test(connection.effectiveType)) {
+                isSlow = true;
             }
         }
 
-        if (forceLowQuality) {
-            videoSrc = 'journey_langsam.mp4';
-        }
+        // ENTSCHEIDUNGSMATRIX:
+        if (isSlow) {
+            // NOTFALL: Extrem langsames Netz
+            // -> 300px Breite, kleine Datei
+            videoSrc = 'journey_low.mp4'; 
+        } else if (isMobile) {
+            // HANDY STANDARD: 
+            // 720px Höhe (Mid) ist perfekt für Retina-Displays.
+            // 1080p (High) bringt auf Handys keinen sichtbaren Vorteil, frisst aber Leistung.
+            // Deshalb ist MID hier die "Beste Qualität für das Gerät".
+            videoSrc = 'journey_mid.mp4'; 
+        } 
+        // DESKTOP / TABLET: Bleibt bei 'journey_high.mp4'
 
-        /* --- 2. OS DETECTION --- */
+        /* --- 2. SYSTEM-CONFIG --- */
         const ua = navigator.userAgent.toLowerCase();
         const isAndroid = /android/.test(ua);
         
-        /* --- 3. PERFORMANCE LOGIK --- */
         let isReady = false;
-        // Limitierung für Android: 30 FPS, damit HD Videos flüssig scrollen
+        // Performance-Bremse für Android (30 FPS), sonst 0 (unlimitiert)
         const frameInterval = isAndroid ? 33 : 0; 
         let lastFrameTime = 0;
 
-        /* --- 4. DOWNLOAD & START --- */
+        /* --- 3. DOWNLOAD & PLAYER START --- */
         function loadVideo() {
             const req = new XMLHttpRequest();
             req.open('GET', videoSrc, true);
@@ -264,27 +279,26 @@
                     video.src = vid;
                     video.load();
 
-                    // --- ANTI-SCHWARZ-BILD LOGIK ---
+                    // --- ANTI-BLACK-SCREEN & PERFORMANCE START ---
                     const onFrameReady = () => {
                         if (isReady) return;
                         isReady = true;
                         
-                        // Video sichtbar schalten
+                        // Performance: Video pausieren, damit Browser nicht versucht es abzuspielen
+                        video.pause();
+                        video.currentTime = 0.001; 
+
+                        // UI Freigeben
                         loaderContainer.classList.add('hidden');
                         video.classList.add('is-active');
-                        
                         initScrollLogic();
                     };
 
-                    // Wir setzen die Zeit minimal, um das Rendering zu erzwingen
-                    video.onloadeddata = () => {
-                        video.currentTime = 0.001; 
-                    };
-
-                    // Das 'seeked' Event feuert erst, wenn das Bild wirklich fertig ist
+                    video.onloadeddata = () => { video.currentTime = 0.001; };
+                    // 'seeked' feuert erst, wenn das Bild wirklich fertig gerendert ist
                     video.onseeked = onFrameReady;
 
-                    // Fallback: Manchmal feuert seeked nicht auf Android -> Timeout Rettung
+                    // Fallback-Sicherung für ältere Androids
                     setTimeout(() => {
                         if (!isReady) {
                             console.log("Force start via Timeout");
@@ -295,12 +309,15 @@
             };
             
             req.onerror = function() { 
-                // Fallback: Wenn HD fehlschlägt, probiere Low-Res
-                if (videoSrc === 'journey.mp4') {
-                    videoSrc = 'journey_langsam.mp4';
+                // Kaskaden-Fallback falls Dateien fehlen
+                if (videoSrc === 'journey_high.mp4') {
+                    videoSrc = 'journey_mid.mp4';
+                    loadVideo();
+                } else if (videoSrc === 'journey_mid.mp4') {
+                    videoSrc = 'journey_low.mp4';
                     loadVideo();
                 } else {
-                    // Letzter Ausweg
+                    // Letzter Ausweg: Starten (auch ohne Video, UI zeigen)
                     loaderContainer.classList.add('hidden');
                     video.classList.add('is-active');
                     initScrollLogic();
@@ -311,7 +328,7 @@
 
         loadVideo();
 
-        /* --- 5. RENDER ENGINE --- */
+        /* --- 4. RENDER ENGINE --- */
         function initScrollLogic() {
             const duration = video.duration || 10;
             const safeDuration = duration - 0.1;
@@ -327,15 +344,15 @@
             });
 
             function render(now) {
-                // Interpolation: Android direkter (0.12), andere weicher (0.08)
+                // Interpolation: Android direkter (0.12) für Responsiveness, Desktop weicher (0.08)
                 const lerp = isAndroid ? 0.12 : 0.08;
                 currentTime += (targetTime - currentTime) * lerp;
 
                 const delta = now - lastFrameTime;
 
-                // PERFORMANCE BOOST: 
-                // 1. Android Limit beachten (frameInterval)
-                // 2. !video.seeking: Nicht updaten, wenn der Player noch beschäftigt ist (wichtig gegen Ruckeln)
+                // CRITICAL PERFORMANCE FIX:
+                // 1. Check frameInterval (Android Bremse)
+                // 2. Check !video.seeking (Verhindert Überlastung des Decoders)
                 if (delta > frameInterval && !video.seeking) {
                     if (Math.abs(currentTime - video.currentTime) > 0.001) {
                          video.currentTime = Number(currentTime.toFixed(3));
@@ -347,24 +364,24 @@
             }
             requestAnimationFrame(render);
 
+            // Intro Text Animation
             gsap.to("#intro", {
                 scrollTrigger: { trigger: "body", start: "top top", end: "30% top", scrub: true },
                 opacity: 0, scale: 0.95, filter: "blur(15px)",
             });
 
+            // Outro Timeline
             let tlOutro = gsap.timeline({
                 scrollTrigger: { trigger: "body", start: "55% top", end: "95% bottom", scrub: 1 }
             });
 
             tlOutro.to(video, { filter: "blur(25px)", ease: "power1.inOut" }, 0);
             
-            // Buttons
             tlOutro.fromTo(".link-card", 
                 { autoAlpha: 0, y: 60, scale: 0.95 },
                 { autoAlpha: 1, y: 0, scale: 1, stagger: 0.12, ease: "power2.out", immediateRender: false }, 
             0.1);
 
-            // Footer (Legal)
             tlOutro.fromTo(".legal-footer",
                 { autoAlpha: 0, y: 20 },
                 { autoAlpha: 1, y: 0, ease: "power2.out" },
@@ -372,6 +389,7 @@
             );
         }
 
+        // White Flash Navigation
         function nav(e, url) { 
             e.preventDefault(); 
             gsap.to(".flash", { scaleY: 1, duration: 0.4, ease: "power2.inOut", onComplete: () => window.location.href = url }); 
