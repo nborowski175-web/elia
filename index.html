@@ -192,16 +192,43 @@
         
         document.body.style.height = "350vh"; 
 
-        /* --- CONFIG --- */
-        const videoSrc = 'journey.mp4';
+        /* --- CONFIG & VIDEO SELECTION --- */
+        
+        // 1. Standard definieren
+        let videoSrc = 'journey.mp4'; 
+        
+        // 2. Hardware-Check: Ist es ein Mobilgerät?
+        // Mobilgeräte profitieren immer von der kleinen Datei (Performance + Akku)
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // 3. Netzwerk-Check: Ist die Verbindung langsam?
+        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+        let isSlowConnection = false;
+        
+        if (connection) {
+            if (connection.saveData === true || 
+                connection.effectiveType === 'slow-2g' || 
+                connection.effectiveType === '2g' || 
+                connection.effectiveType === '3g') {
+                isSlowConnection = true;
+            }
+        }
+
+        // ENTSCHEIDUNG: Wenn Mobile ODER langsame Verbindung -> kleine Datei
+        if (isMobile || isSlowConnection) {
+            videoSrc = 'journey_langsam.mp4';
+        }
+
+        /* --- OS DETECTION --- */
         const ua = navigator.userAgent.toLowerCase();
         const isAndroid = /android/.test(ua);
+        const isApple = /mac|iphone|ipad|ipod/.test(ua);
 
         /* --- PERFORMANCE LOGIK --- */
         let isReady = false;
 
         // SMART LIMITER:
-        // Android = 30ms (ca. 30 FPS) Limit, damit der Decoder nicht abstürzt
+        // Android = 30ms (ca. 30 FPS) Limit
         // Andere = 0ms (Unlimitiert, max FPS)
         const frameInterval = isAndroid ? 33 : 0; 
         let lastFrameTime = 0;
@@ -231,7 +258,15 @@
                     };
                 }
             };
-            req.onerror = function() { video.src = videoSrc; startJourney(); };
+            req.onerror = function() { 
+                // Fallback, falls Datei nicht gefunden
+                console.warn("Konnte " + videoSrc + " nicht laden.");
+                // Notfalls auf Standard zurückfallen
+                if(videoSrc !== 'journey.mp4') {
+                     video.src = 'journey.mp4';
+                     startJourney();
+                }
+            };
             req.send();
         }
 
@@ -261,13 +296,12 @@
             });
 
             function render(now) {
-                // Interpolation (Weichheit):
+                // Interpolation:
                 // Android etwas direkter (0.12), andere weicher (0.08)
                 const lerp = isAndroid ? 0.12 : 0.08;
                 currentTime += (targetTime - currentTime) * lerp;
 
                 // PERFORMANCE OPTIMIERUNG:
-                // Prüfen ob genug Zeit vergangen ist
                 const delta = now - lastFrameTime;
 
                 if (delta > frameInterval) {
@@ -290,7 +324,7 @@
                 scrollTrigger: { trigger: "body", start: "55% top", end: "95% bottom", scrub: 1 }
             });
 
-            // Blur Filter für ALLE aktiviert (Design Konsistenz)
+            // Blur Filter für ALLE aktiviert
             tlOutro.to(video, { filter: "blur(25px)", ease: "power1.inOut" }, 0);
             
             tlOutro.fromTo(".link-card", 
