@@ -24,28 +24,44 @@
         }
         body::-webkit-scrollbar { display: none; }
 
-        /* --- FIXED STAGE --- */
+        /* --- STAGE --- */
         .fixed-stage {
             position: fixed; top: 0; left: 0; width: 100%; 
             height: 100vh; height: 100dvh; 
             overflow: hidden; z-index: 1;
+            background: #000;
         }
 
         video { 
             width: 100%; height: 100%; 
             object-fit: cover; object-position: center center;
-            display: block; will-change: filter; 
+            display: block; opacity: 0; transition: opacity 1s;
         }
+        
+        video.loaded { opacity: 1; }
 
-        /* --- UI LAYER (TITEL POSITIONIERUNG) --- */
+        /* --- LOADING SPINNER --- */
+        .loader {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 40px; height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            z-index: 0; pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        .loader.hidden { opacity: 0; }
+        @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        /* --- UI LAYER (PERFEKTE POSITION) --- */
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
             display: flex; flex-direction: column; 
             
-            /* ÄNDERUNG: Titel deutlich tiefer (Mid-Low Position) */
+            /* KREATIVE POSITIONIERUNG: 38% von oben = Goldener Schnitt über Torso */
             justify-content: flex-start; 
-            padding-top: 42vh; /* Startet fast in der Mitte, geht nach unten */
+            padding-top: 38vh; 
             
             align-items: center; 
         }
@@ -56,21 +72,18 @@
             text-align: center; 
             line-height: 0.9; 
             
-            /* High-End Blending */
+            /* HIGH-END BLENDING */
             color: rgba(255, 255, 255, 0.95);
             mix-blend-mode: overlay; 
-            text-shadow: 0 0 30px rgba(255,255,255,0.3);
+            text-shadow: 0 0 40px rgba(255,255,255,0.25);
             
             letter-spacing: -0.04em; 
             margin: 0;
-            will-change: transform, opacity, filter;
+            will-change: transform, opacity;
         }
 
         .scroll-hint { 
-            /* Fix am Boden verankert, unabhängig vom Titel */
-            position: absolute; 
-            bottom: 8dvh; 
-            
+            position: absolute; bottom: 8dvh; 
             font-size: 0.75rem; letter-spacing: 0.3em; font-weight: 600;
             color: rgba(255,255,255,0.85); text-transform: uppercase;
             animation: breathe 3s ease-in-out infinite;
@@ -81,31 +94,24 @@
             50% { opacity: 1; transform: translateY(6px); } 
         }
 
-        /* --- BUTTONS CONTAINER --- */
+        /* --- BUTTONS --- */
         .links-container { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 20; 
-            display: flex; flex-direction: column; 
+            z-index: 20; display: flex; flex-direction: column; 
             justify-content: center; align-items: center; 
             perspective: 1000px; pointer-events: none; 
         }
 
-        /* --- BUTTON STYLE --- */
         .link-card { 
             display: grid; 
             grid-template-columns: 28px 1fr 18px; 
             align-items: center; gap: 20px;
-
-            width: auto; 
-            min-width: 300px; 
-            max-width: 400px;
+            width: auto; min-width: 300px; max-width: 400px;
+            padding: 22px 32px; margin: 12px 0; 
             
-            padding: 22px 32px; 
-            margin: 12px 0; 
-            
+            /* DUNKLES GLAS für besten Kontrast */
             background: rgba(0, 0, 0, 0.35); 
             border: 1px solid rgba(255, 255, 255, 0.2);
-            
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
             border-radius: 60px; 
             
@@ -113,15 +119,13 @@
             text-shadow: 0 2px 10px rgba(0,0,0,0.3);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); 
             
-            /* Init State */
             visibility: hidden; opacity: 0; transform: translateY(100px); 
             transition: background 0.3s, transform 0.2s, border-color 0.3s;
             pointer-events: auto; 
         }
 
         .link-text {
-            font-weight: 700; 
-            font-size: 1.1rem; 
+            font-weight: 700; font-size: 1.1rem; 
             text-transform: uppercase; letter-spacing: 0.05em;
             text-align: left; opacity: 1;
         }
@@ -145,10 +149,9 @@
             transform-origin: bottom; pointer-events: none; 
         }
 
-        /* Landscape Adjustment */
         @media (max-height: 500px) and (orientation: landscape) {
             .hero-title { font-size: 2.5rem; }
-            .ui-layer { padding-top: 15vh; justify-content: flex-start; }
+            .ui-layer { padding-top: 5vh; justify-content: center; }
             .link-card { padding: 10px 24px; margin: 5px 0; min-width: 220px; transform: scale(0.9); }
         }
     </style>
@@ -156,6 +159,7 @@
 <body>
 
     <div class="fixed-stage">
+        <div class="loader" id="loader"></div>
         <video id="video" muted playsinline preload="auto">
             <source src="journey.mp4" type="video/mp4">
         </video>
@@ -194,17 +198,30 @@
     <script>
         gsap.registerPlugin(ScrollTrigger);
         const video = document.getElementById('video');
+        const loader = document.getElementById('loader');
 
         document.body.style.height = "350vh"; 
 
-        video.play().then(() => video.pause()).catch(() => {});
+        // Starten, um Buffer zu füllen
+        video.play().then(() => {
+            video.pause();
+            video.classList.add('loaded'); // Erst zeigen wenn bereit
+            loader.classList.add('hidden');
+        }).catch(() => {
+            // Falls Autoplay blockiert, trotzdem UI zeigen
+            video.classList.add('loaded');
+            loader.classList.add('hidden');
+        });
 
-        // --- SMART SMOOTH SCROLLING ---
+        // --- ANDROID/WEAK CONNECTION ENGINE ---
         function initJourney() {
             let duration = video.duration || 10;
             let safeDuration = duration - 0.1; 
+            
+            // State speichert wo wir sind und wo wir hinwollen
             let state = { current: 0, target: 0 };
 
+            // 1. Scroll steuert nur das ZIEL
             ScrollTrigger.create({
                 trigger: "body",
                 start: "top top",
@@ -214,10 +231,16 @@
                 }
             });
 
+            // 2. INTELLIGENTER TICKER
             gsap.ticker.add(() => {
                 if(video.readyState >= 1) {
-                    state.current += (state.target - state.current) * 0.1; 
-                    if (Math.abs(state.current - video.currentTime) > 0.02) {
+                    // Weiche Interpolation (0.1)
+                    state.current += (state.target - state.current) * 0.1;
+                    
+                    // PERFORMANCE HACK:
+                    // Wenn wir nah genug dran sind ODER das Video gerade "seeking" ist (busy),
+                    // dann updaten wir NICHT. Das verhindert den Android-Crash.
+                    if (!video.seeking && Math.abs(state.current - video.currentTime) > 0.03) {
                         video.currentTime = state.current;
                     }
                 }
