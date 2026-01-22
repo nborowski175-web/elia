@@ -37,32 +37,28 @@
             display: block; will-change: filter; 
         }
 
-        /* --- UI LAYER (TEXT POSITIONIERUNG) --- */
+        /* --- UI LAYER (TITEL POSITIONIERUNG) --- */
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
             display: flex; flex-direction: column; 
             
-            /* KREATIVE POSITIONIERUNG */
-            /* Zentriert, aber durch Padding leicht nach unten geschoben */
-            /* Damit liegt es ästhetisch über dem Torso, Gesicht bleibt meist frei */
-            justify-content: center; 
-            padding-top: 15vh; 
+            /* ÄNDERUNG: Titel deutlich tiefer (Mid-Low Position) */
+            justify-content: flex-start; 
+            padding-top: 42vh; /* Startet fast in der Mitte, geht nach unten */
             
             align-items: center; 
         }
         
         .hero-title { 
-            font-size: clamp(3.5rem, 12vw, 9rem); /* Etwas größer für Impact */
+            font-size: clamp(3.5rem, 12vw, 9rem); 
             font-weight: 900; 
             text-align: center; 
             line-height: 0.9; 
             
-            /* HIGH-END BLENDING: Text interagiert mit dem Video */
+            /* High-End Blending */
             color: rgba(255, 255, 255, 0.95);
             mix-blend-mode: overlay; 
-            
-            /* Subtiler Glow damit es nicht untergeht */
             text-shadow: 0 0 30px rgba(255,255,255,0.3);
             
             letter-spacing: -0.04em; 
@@ -71,7 +67,10 @@
         }
 
         .scroll-hint { 
-            position: absolute; bottom: 8dvh; 
+            /* Fix am Boden verankert, unabhängig vom Titel */
+            position: absolute; 
+            bottom: 8dvh; 
+            
             font-size: 0.75rem; letter-spacing: 0.3em; font-weight: 600;
             color: rgba(255,255,255,0.85); text-transform: uppercase;
             animation: breathe 3s ease-in-out infinite;
@@ -91,29 +90,24 @@
             perspective: 1000px; pointer-events: none; 
         }
 
-        /* --- BUTTON STYLE (GROSS, DUNKEL, ABSTAND) --- */
+        /* --- BUTTON STYLE --- */
         .link-card { 
             display: grid; 
-            /* Größeres Grid für größere Icons */
             grid-template-columns: 28px 1fr 18px; 
             align-items: center; gap: 20px;
 
             width: auto; 
-            min-width: 300px; /* Breiter */
+            min-width: 300px; 
             max-width: 400px;
             
-            /* Mehr Padding = Größere Buttons */
             padding: 22px 32px; 
-            
-            /* Mehr Abstand zwischen den Buttons */
             margin: 12px 0; 
             
-            /* DARKER GLASS: Bessere Lesbarkeit */
             background: rgba(0, 0, 0, 0.35); 
             border: 1px solid rgba(255, 255, 255, 0.2);
             
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
-            border-radius: 60px; /* Noch runder */
+            border-radius: 60px; 
             
             text-decoration: none; color: white; 
             text-shadow: 0 2px 10px rgba(0,0,0,0.3);
@@ -127,12 +121,11 @@
 
         .link-text {
             font-weight: 700; 
-            font-size: 1.1rem; /* Größere Schrift */
+            font-size: 1.1rem; 
             text-transform: uppercase; letter-spacing: 0.05em;
             text-align: left; opacity: 1;
         }
 
-        /* Größere Icons */
         .icon { width: 28px; height: 28px; fill: white; display: block; opacity: 1; }
         .arrow-icon { width: 18px; height: 18px; fill: rgba(255,255,255,0.7); display: block; transition: transform 0.2s; }
 
@@ -155,7 +148,7 @@
         /* Landscape Adjustment */
         @media (max-height: 500px) and (orientation: landscape) {
             .hero-title { font-size: 2.5rem; }
-            .ui-layer { padding-top: 5vh; justify-content: center; }
+            .ui-layer { padding-top: 15vh; justify-content: flex-start; }
             .link-card { padding: 10px 24px; margin: 5px 0; min-width: 220px; transform: scale(0.9); }
         }
     </style>
@@ -221,7 +214,6 @@
                 }
             });
 
-            // Interpolation gegen Ruckeln
             gsap.ticker.add(() => {
                 if(video.readyState >= 1) {
                     state.current += (state.target - state.current) * 0.1; 
