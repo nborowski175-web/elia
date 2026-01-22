@@ -7,7 +7,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
 
     <style>
         :root { --bg-color: #000000; }
@@ -27,14 +27,14 @@
         }
         body::-webkit-scrollbar { display: none; }
 
-        /* --- STAGE --- */
+        /* --- FIXED CONTAINER --- */
         .fixed-stage {
             position: fixed; top: 0; left: 0; width: 100%; 
             height: 100vh; height: 100dvh; 
             overflow: hidden; z-index: 1;
         }
 
-        /* --- VIDEO & DIMMER --- */
+        /* --- VIDEO --- */
         video { 
             width: 100%; height: 100%; 
             object-fit: cover; 
@@ -43,37 +43,24 @@
             will-change: filter; 
         }
 
-        /* Neue Ebene: Dunkelt das Video ab für Lesbarkeit */
-        .dimmer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: black;
-            opacity: 0; /* Startet unsichtbar */
-            pointer-events: none;
-            z-index: 1; /* Über Video, unter Text */
-        }
-
         /* --- UI LAYER (TITEL) --- */
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
             display: flex; flex-direction: column; 
-            /* Optische Mitte etwas höher setzen für Ästhetik */
-            justify-content: flex-start; 
-            padding-top: 35vh; 
+            
+            /* TITEL TIEFER POSITIONIERT (Unteres Drittel) */
+            justify-content: flex-end; 
+            padding-bottom: 25vh; /* Abstand von unten */
             align-items: center; 
         }
         
         .hero-title { 
-            font-family: 'Syne', sans-serif; /* Kreativere Font */
-            font-size: clamp(3rem, 11vw, 7.5rem); 
-            font-weight: 800; 
-            text-align: center; 
-            line-height: 0.9; 
-            color: white; 
-            letter-spacing: -0.03em;
-            text-transform: uppercase;
+            font-size: clamp(3rem, 10vw, 8rem); font-weight: 900; text-align: center; 
+            line-height: 0.95; color: white; 
+            /* Overlay Blend Mode für Verschmelzung mit Video */
             mix-blend-mode: overlay;
-            text-shadow: 0 0 30px rgba(255,255,255,0.2);
+            text-shadow: 0 0 40px rgba(255,255,255,0.2); 
             margin: 0;
             will-change: transform, opacity, filter;
         }
@@ -81,14 +68,13 @@
         .scroll-hint { 
             position: absolute; 
             bottom: 8dvh; 
-            font-size: 0.65rem; letter-spacing: 0.3em; font-weight: 500;
-            color: rgba(255,255,255,0.7); 
-            animation: bounce 2s infinite; 
-            text-transform: uppercase;
+            font-size: 0.7rem; letter-spacing: 0.4em; 
+            color: white; animation: bounce 2s infinite; opacity: 0.8; 
+            width: 100%; text-align: center;
         }
-        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
 
-        /* --- BUTTONS --- */
+        /* --- BUTTONS CONTAINER --- */
         .links-container { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
@@ -96,49 +82,51 @@
             pointer-events: none; 
         }
 
+        /* --- BUTTON STYLE (Dark Glass, Grid, Compact) --- */
         .link-card { 
-            /* Kompakteres Design */
+            /* Grid Layout: Icon | Text | Pfeil */
             display: grid;
-            grid-template-columns: 24px 1fr 14px; /* Icon | Text | Pfeil */
+            grid-template-columns: 24px 1fr 14px;
             align-items: center;
             gap: 15px;
 
             width: auto; 
-            min-width: 260px; /* Nicht zu breit, nicht zu schmal */
-            max-width: 320px;
+            min-width: 260px; 
+            max-width: 320px; /* Schön kompakt */
             
             padding: 16px 24px; 
             margin: 6px 0; 
             
-            /* Dark Glass Look - besserer Kontrast */
-            background: rgba(0, 0, 0, 0.4); 
+            /* DARK GLASS LOOK */
+            background: rgba(0, 0, 0, 0.45); 
             border: 1px solid rgba(255, 255, 255, 0.15);
 
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
-            border-radius: 50px; /* Pill Shape wirkt oft moderner */
+            border-radius: 50px; /* Pill Shape */
             
             text-decoration: none; color: white; 
             
-            visibility: hidden; opacity: 0; /* Start Hidden */
+            /* Startzustand: Unsichtbar */
+            visibility: hidden; 
+            opacity: 0; 
             
             transition: background 0.3s, transform 0.2s, border-color 0.3s;
             pointer-events: auto; 
         }
 
         .link-text {
-            font-family: 'Inter', sans-serif;
             font-weight: 600;
             font-size: 0.95rem;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.05em;
             text-align: left;
-            opacity: 0.9;
+            opacity: 0.95;
         }
 
-        .icon { width: 20px; height: 20px; fill: white; display: block; opacity: 0.9; }
+        .icon { width: 22px; height: 22px; fill: white; display: block; opacity: 0.9; }
         .arrow-icon { width: 14px; height: 14px; fill: rgba(255,255,255,0.6); display: block; transition: transform 0.2s; }
 
-        /* Hover nur Desktop */
+        /* Hover nur auf Desktop */
         @media (hover: hover) {
             .link-card:hover { 
                 background: rgba(255, 255, 255, 1); 
@@ -159,8 +147,8 @@
         /* Landscape Schutz */
         @media (max-height: 500px) and (orientation: landscape) {
             .hero-title { font-size: 2.5rem; }
-            .ui-layer { padding-top: 0; justify-content: center; }
-            .link-card { padding: 10px 20px; margin: 4px 0; min-width: 200px; }
+            .ui-layer { padding-bottom: 10vh; justify-content: flex-end; }
+            .link-card { padding: 8px 20px; margin: 4px 0; min-width: 200px; }
         }
     </style>
 </head>
@@ -170,8 +158,6 @@
         <video id="video" muted playsinline preload="auto">
             <source src="journey.mp4" type="video/mp4">
         </video>
-        
-        <div class="dimmer"></div>
 
         <div class="ui-layer" id="intro">
             <h1 class="hero-title">KOMM MIT<br>AUF MEINE<br>REISE</h1>
@@ -195,7 +181,7 @@
                 <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </a>
             <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 12,9Z"/></svg>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
                 <span class="link-text">Instagram</span>
                 <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </a>
@@ -208,7 +194,7 @@
         gsap.registerPlugin(ScrollTrigger);
         const video = document.getElementById('video');
 
-        // Scrollbereich (350vh für angenehmes Pacing)
+        // Scrollbereich (350vh)
         document.body.style.height = "350vh";
 
         // Video Init
@@ -230,7 +216,7 @@
                 }
             });
 
-            // --- 2. TEXT FADE OUT (Ruhig & Zentriert) ---
+            // --- 2. TEXT FADE OUT (Titel tiefer & zentriert) ---
             gsap.to("#intro", {
                 scrollTrigger: { trigger: "body", start: "top top", end: "30% top", scrub: true },
                 opacity: 0, 
@@ -238,27 +224,26 @@
                 filter: "blur(20px)",
             });
 
-            // --- 3. DIMMER, BLUR & BUTTONS ---
+            // --- 3. BLUR & BUTTONS ---
             let tlOutro = gsap.timeline({
                 scrollTrigger: {
                     trigger: "body",
-                    start: "55% top", // Späterer Start für besseres Timing
+                    start: "55% top", 
                     end: "95% bottom",
                     scrub: 1
                 }
             });
 
-            // A) Blur & Dimmer (Hintergrund abdunkeln)
+            // A) Blur (Ohne Dimmer)
             tlOutro.to(video, { filter: "blur(20px)", ease: "power1.inOut" }, 0);
-            tlOutro.to(".dimmer", { opacity: 0.4, ease: "none" }, 0); // Dimmt Video auf 40%
 
-            // B) Buttons: Reset-Garantie durch fromTo
+            // B) Buttons: fromTo garantiert Reset beim Hochscrollen
             tlOutro.fromTo(".link-card", 
                 { 
                     autoAlpha: 0, 
-                    y: 100, 
-                    rotateX: 10, 
-                    scale: 0.95 
+                    y: 120, 
+                    rotateX: 20, 
+                    scale: 0.9 
                 },
                 {
                     autoAlpha: 1, 
