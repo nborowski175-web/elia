@@ -17,11 +17,11 @@
             background-color: var(--bg-color);
             font-family: 'Inter', sans-serif;
             margin: 0;
-            overscroll-behavior: none; /* Verhindert Bouncen auf Mac/iOS */
+            overscroll-behavior: none;
             width: 100vw;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
-            /* Scrollbar verstecken für Clean Look */
+            /* Scrollbar ausblenden für Clean Look */
             scrollbar-width: none; 
             -ms-overflow-style: none;
         }
@@ -35,17 +35,16 @@
         video { 
             width: 100%; height: 100%; 
             object-fit: cover; 
-            object-position: center center; /* WICHTIG: Immer die Mitte zeigen */
+            object-position: center center; 
             display: block; 
-            will-change: filter; /* Performance Boost für Blur */
+            will-change: filter; /* Wichtig für Performance beim Blur */
         }
 
-        /* --- UI LAYER (TITEL) --- */
+        /* --- TITEL (INTRO) --- */
         .ui-layer { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
             display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            will-change: transform, opacity, filter;
         }
         .hero-title { 
             font-size: clamp(3rem, 10vw, 8rem); font-weight: 900; text-align: center; 
@@ -58,7 +57,7 @@
         }
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
 
-        /* --- OUTRO LINKS --- */
+        /* --- BUTTONS (OUTRO) --- */
         .links-wrapper { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
@@ -66,25 +65,22 @@
         }
         .link-card { 
             width: 90%; max-width: 380px; padding: 22px 30px; margin: 10px 0; 
-            /* Agency Look: Kein Rand, nur Glas */
             background: rgba(255, 255, 255, 0.15); 
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
             transform: translate3d(0,0,0); backface-visibility: hidden; border-radius: 20px; 
             display: flex; justify-content: center; align-items: center; gap: 15px; 
             text-decoration: none; color: white; font-weight: 900; font-size: 1.1rem; text-transform: uppercase; 
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); 
-            transition: all 0.3s ease; 
+            transition: transform 0.2s, background 0.3s, color 0.3s; 
         }
         .link-card:hover { 
             background: white; color: black; 
-            box-shadow: 0 10px 40px rgba(255,255,255,0.4); 
             transform: scale(1.02);
+            box-shadow: 0 10px 40px rgba(255,255,255,0.4); 
         }
-        .link-content { display: flex; align-items: center; gap: 15px; }
         .icon { width: 24px; height: 24px; fill: white; transition: fill 0.2s; }
         .link-card:hover .icon { fill: black; }
         
-        /* Flash für Klick */
         .flash { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: white; z-index: 10001; transform: scaleY(0); 
@@ -138,86 +134,82 @@
         gsap.registerPlugin(ScrollTrigger);
         const video = document.getElementById('video');
 
-        // SOFORTIGE FREIGABE DER SCROLL-HÖHE (Kein Warten)
-        document.body.style.height = "350vh"; // Länge der Scroll-Strecke
+        // Scroll-Strecke definieren
+        document.body.style.height = "400vh"; 
 
-        // Metadata laden sicherstellen für korrekte Berechnung
-        video.onloadedmetadata = function() {
-            initAnimation(video.duration);
-        };
+        // Video initialisieren (sofort)
+        video.play().then(() => video.pause()).catch(() => {});
 
-        // Fallback falls Metadaten schon da sind oder Video cached
+        // --- 1. VIDEO SCRUBBING (Proxy Methode für Smoothness) ---
+        // Dies verhindert, dass das Video springt oder ruckelt.
+        let videoProxy = { currentTime: 0 };
+        
+        // Wir setzen eine Standard-Länge, falls Metadata langsam ist
+        let duration = video.duration || 10;
+        
+        // WICHTIG: Wir ziehen 0.1s ab, damit es nie ins Schwarze loopt/endet
+        const safeDuration = duration - 0.1; 
+
         if (video.readyState >= 1) {
-            initAnimation(video.duration);
+            setupAnimation(video.duration - 0.1);
         } else {
-            // Absoluter Fallback falls nichts geht
-            setTimeout(() => initAnimation(10), 500);
+            video.onloadedmetadata = function() {
+                setupAnimation(video.duration - 0.1);
+            };
         }
 
-        function initAnimation(duration) {
-            // Video Play Hack für Mobile (Buffer füllen)
-            video.play().then(() => video.pause()).catch((e)=>{});
-
-            // 1. VIDEO SCROLLING (Proxy Technik für Smoothness)
-            // Statt currentTime direkt zu setzen, tweenen wir einen Wert
-            // Das verhindert Ruckeln und sorgt für das "natürliche" Gefühl.
-            let videoProxy = { time: 0 };
-            
-            // WICHTIG: Wir ziehen 0.1 Sekunden ab, damit es nie auf Frame 0 looped!
-            const safeDuration = duration - 0.1; 
-
+        function setupAnimation(finalDuration) {
+            // Video Scrubbing
             gsap.to(videoProxy, {
-                time: safeDuration, 
+                currentTime: finalDuration,
                 ease: "none",
                 scrollTrigger: {
                     trigger: "body",
                     start: "top top",
                     end: "bottom bottom",
-                    scrub: 1, // 1 Sekunde Verzögerung für "Smoothness"
+                    scrub: 0.5 // Ein bisschen Glättung für natürliches Gefühl
                 },
                 onUpdate: () => {
-                    if(video.readyState >= 1) {
-                        video.currentTime = videoProxy.time;
-                    }
+                    if (video.readyState >= 1) video.currentTime = videoProxy.currentTime;
                 }
             });
 
-            // 2. TEXT & BUTTONS & BLUR (Synchronisiert)
+            // --- 2. TITEL FADE OUT ---
+            gsap.to("#intro", {
+                scrollTrigger: { trigger: "body", start: "top top", end: "20% top", scrub: true },
+                opacity: 0, y: -50, filter: "blur(10px)"
+            });
+
+            // --- 3. BLUR & BUTTONS (Perfekt synchronisiert) ---
+            // Dieser Timeline kontrolliert BEIDES gleichzeitig.
             let tl = gsap.timeline({
                 scrollTrigger: {
                     trigger: "body",
-                    start: "60% top", // Startet erst im letzten Drittel
-                    end: "bottom bottom", // Endet wenn Seite unten
+                    start: "70% top", // Hier geht es los (wenn Buttons kommen)
+                    end: "bottom bottom", // Bis ganz unten
                     scrub: true
                 }
             });
 
-            // A) Hintergrundtitel verschwindet
-            gsap.to("#intro", {
-                scrollTrigger: {
-                    trigger: "body", start: "top top", end: "20% top", scrub: true
-                },
-                opacity: 0, y: -50, filter: "blur(10px)"
-            });
+            // A) Blur startet langsam und wird stark
+            // 'ease: "none"' sorgt für linearen Verlauf abhängig vom Scroll
+            tl.to(video, { filter: "blur(20px)", ease: "none" }, 0); 
 
-            // B) Video wird unscharf + Buttons kommen gleichzeitig
-            tl.to(video, { filter: "blur(20px)", duration: 1 }, 0); // Blur startet
-            tl.to("#outro", { opacity: 1, pointerEvents: "all", duration: 1 }, 0); // Container sichtbar
+            // B) Buttons Container sichtbar machen
+            tl.to("#outro", { opacity: 1, pointerEvents: "all", ease: "none" }, 0);
+
+            // C) Buttons fahren hoch
             tl.from(".link-card", { 
-                y: 50, 
-                stagger: 0.05, 
-                duration: 0.8,
-                ease: "power2.out"
-            }, 0); // Buttons fahren hoch
+                y: 100, 
+                opacity: 0,
+                stagger: 0.1, // Kleiner Versatz zwischen den Buttons
+                ease: "power1.out" 
+            }, 0);
         }
 
-        // Navigation
         function nav(e, url) { 
             e.preventDefault(); 
-            gsap.to(".flash", { 
-                scaleY: 1, duration: 0.4, ease: "power2.inOut", 
-                onComplete: () => window.location.href = url 
-            }); 
+            gsap.to(".flash", { scaleY: 1, duration: 0.4, ease: "power2.inOut", onComplete: () => window.location.href = url }); 
         }
     </script>
 </body>
