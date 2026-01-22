@@ -28,11 +28,10 @@
             position: fixed; top: 0; left: 0; width: 100%; 
             height: 100vh; height: 100dvh; 
             overflow: hidden; z-index: 1;
-            background: #000; /* Fallback Schwarz */
-            
-            /* Hardware Beschleunigung erzwingen */
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
+            background: #000;
+            /* GPU-Beschleunigung für alle Systeme erzwingen */
+            transform: translate3d(0, 0, 0);
+            -webkit-transform: translate3d(0, 0, 0);
             backface-visibility: hidden;
             perspective: 1000px;
         }
@@ -41,13 +40,13 @@
             width: 100%; height: 100%; 
             object-fit: cover; object-position: center center;
             display: block; 
-            /* Startzustand: Unsichtbar aber existent */
             opacity: 0; 
-            transition: opacity 1.5s ease-out; /* Sehr weiches Einblenden */
+            transition: opacity 1.5s ease-out;
+            /* Verhindert Flackern auf Windows/Android */
             will-change: transform;
+            transform: translate3d(0, 0, 0); 
         }
         
-        /* Klasse für Sichtbarkeit */
         video.is-active { opacity: 1; }
 
         /* Loader */
@@ -176,60 +175,74 @@
     <script>
         gsap.registerPlugin(ScrollTrigger);
 
+        // GSAP Smoothing deaktivieren, um "Jump"-Effekte bei Videos zu vermeiden
+        gsap.ticker.lagSmoothing(0);
+
         const video = document.getElementById('video');
         const loader = document.getElementById('loader');
         
-        // Scrollhöhe definieren
         document.body.style.height = "350vh"; 
 
-        /* --- FORCE LOAD ENGINE --- */
+        /* --- INTELLIGENTE SYSTEM-ERKENNUNG --- */
+        const ua = navigator.userAgent.toLowerCase();
+        const isApple = /mac|iphone|ipad|ipod/.test(ua);
+        const isWindows = /win/.test(ua);
+        const isAndroid = /android/.test(ua);
+
+        // Konfiguration pro System
+        // Threshold: Wie groß muss der Sprung sein, damit das Video aktualisiert wird?
+        // - Niedrig (0.001) = Ultra Smooth (Apple)
+        // - Mittel (0.015) = Sehr Smooth aber CPU-schonend (Windows)
+        // - Hoch (0.04) = Stabil und Ruckelfrei (Android/Low-End)
+        let updateThreshold;
+
+        if (isApple) {
+            updateThreshold = 0.001; // Apple: Volle Power
+        } else if (isWindows) {
+            updateThreshold = 0.015; // Windows: Gute Balance, verhindert "Micro-Stutter"
+        } else {
+            updateThreshold = 0.045; // Android & Andere: Sicherheits-Puffer für den Decoder
+        }
+        
+        /* --- START ENGINE --- */
         let isReady = false;
 
-        // Funktion zum Starten der Animation
         function startJourney() {
             if (isReady) return;
             isReady = true;
 
-            // Video einblenden, Loader ausblenden
             video.classList.add('is-active');
             loader.classList.add('hidden');
             
             initScrollLogic();
         }
 
-        // Strategie 1: Sofortiges "Vorladen" erzwingen
+        // Preloading Strategien
         video.load();
 
-        // Strategie 2: Metadaten Event
         video.addEventListener('loadedmetadata', () => {
-            // Setze Zeit minimal vorwärts, um Frame-Rendering zu erzwingen
             video.currentTime = 0.001;
         });
 
-        // Strategie 3: Frame ist bereit
         video.addEventListener('canplay', startJourney);
 
-        // Strategie 4: Benutzerinteraktion (Touch/Click) als Fallback für blockierte Browser
-        // Dies ist der "Ecosia/Safari im Stromsparmodus" Fix
         const forceWakeup = () => {
             if (!isReady) {
-                video.load(); // Erzwinge neu Laden
+                video.load();
                 video.currentTime = 0.001;
             }
-            // Listener entfernen nach erstem Klick
             window.removeEventListener('touchstart', forceWakeup);
             window.removeEventListener('click', forceWakeup);
         };
         window.addEventListener('touchstart', forceWakeup);
         window.addEventListener('click', forceWakeup);
 
-        // Strategie 5: Timeout (Notfallschirm) - Nach 1.5sek einfach anzeigen
         setTimeout(() => {
             if (!isReady && video.readyState > 0) startJourney();
         }, 1500);
 
 
-        /* --- FLUID SCROLL LOGIC --- */
+        /* --- OPTIMIZED RENDER LOOP --- */
         function initScrollLogic() {
             const duration = video.duration || 10;
             const safeDuration = duration - 0.1;
@@ -237,7 +250,6 @@
             let targetTime = 0;
             let currentTime = 0;
 
-            // Mapping: Scrollposition -> Videozeit
             ScrollTrigger.create({
                 trigger: "body", start: "top top", end: "bottom bottom", scrub: 0,
                 onUpdate: self => {
@@ -245,14 +257,15 @@
                 }
             });
 
-            // Eigener Render-Loop für maximale FPS
             function render() {
-                // Weiche Interpolation (0.1 = schneller/reaktiver, 0.05 = langsamer/weicher)
+                // Weiche Interpolation für alle Systeme
                 currentTime += (targetTime - currentTime) * 0.08;
 
-                // Performance-Optimierung: Nur setzen, wenn Änderung signifikant ist
-                if (Math.abs(currentTime - video.currentTime) > 0.002) {
-                    // toFixed(3) löst Safari Decoder Bugs
+                // DER MAGISCHE TEIL: Systemabhängiges Update
+                // Wir prüfen, ob die Änderung groß genug ist, um ein Update zu rechtfertigen.
+                // Das schützt Windows und Android vor Überlastung, lässt Apple aber frei laufen.
+                if (Math.abs(currentTime - video.currentTime) >= updateThreshold) {
+                    // toFixed(3) ist wichtig für alle Browser, um Floating-Point Fehler zu vermeiden
                     video.currentTime = Number(currentTime.toFixed(3));
                 }
 
@@ -260,7 +273,7 @@
             }
             render();
 
-            // UI Animationen
+            /* --- UI Animationen (Identisch für alle) --- */
             gsap.to("#intro", {
                 scrollTrigger: { trigger: "body", start: "top top", end: "30% top", scrub: true },
                 opacity: 0, scale: 0.95, filter: "blur(15px)",
