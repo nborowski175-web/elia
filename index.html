@@ -43,54 +43,53 @@
             will-change: filter; 
         }
 
-        /* --- UI LAYER (TITEL) --- */
+        /* --- UI LAYER (TITEL POSITIONIERUNG) --- */
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
             display: flex; flex-direction: column; 
             
-            /* Positionierung: Dynamisch im unteren Drittel */
-            justify-content: flex-end; 
-            padding-bottom: 22vh; 
+            /* ÄNDERUNG: Titel nach OBEN schieben */
+            justify-content: flex-start; 
+            padding-top: 18vh; /* Abstand von oben (ca. oberes Fünftel) */
+            
             align-items: center; 
         }
         
-        /* AESTHETIC TEXT UPDATE */
+        /* AESTHETIC TEXT */
         .hero-title { 
             font-size: clamp(2.8rem, 10vw, 8.5rem); 
             font-weight: 900; 
             text-align: center; 
             line-height: 0.9; 
             
-            /* Blending & Gradient für "Verschwimmen" Effekt */
+            /* Blending & Gradient */
             background: linear-gradient(to bottom, rgba(255,255,255,1) 30%, rgba(255,255,255,0.7) 100%);
             -webkit-background-clip: text;
             background-clip: text;
-            color: transparent; /* Wichtig damit Gradient sichtbar ist */
+            color: transparent;
             
-            /* Soft Glow statt harter Schatten für Lesbarkeit */
+            /* Soft Glow */
             filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3)); 
             
-            /* Engeres Kerning für modernen Look */
             letter-spacing: -0.04em;
             margin: 0;
-            margin-bottom: 25px;
+            /* margin-bottom entfernt, da Text jetzt oben ist */
             
-            /* Hardware Beschleunigung */
             will-change: transform, opacity, filter;
         }
 
         .scroll-hint { 
+            /* Bleibt absolut unten positioniert */
+            position: absolute; 
+            bottom: 8dvh; 
+            
             font-size: 0.75rem; 
             letter-spacing: 0.3em; 
             font-weight: 500;
             color: rgba(255,255,255,0.85); 
             text-transform: uppercase;
-            
-            /* Langsames, organisches Pulsieren */
             animation: breathe 3s ease-in-out infinite;
-            
-            /* Subtiler Background Blur für Lesbarkeit des kleinen Textes */
             text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
         
@@ -173,7 +172,8 @@
         /* Landscape Fix */
         @media (max-height: 500px) and (orientation: landscape) {
             .hero-title { font-size: 2.2rem; }
-            .ui-layer { padding-bottom: 5vh; justify-content: center; }
+            /* Im Querformat etwas weniger Abstand von oben */
+            .ui-layer { padding-top: 10vh; justify-content: flex-start; }
             .link-card { padding: 8px 20px; margin: 3px 0; min-width: 200px; transform: scale(0.85); }
         }
     </style>
@@ -207,7 +207,7 @@
                 <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </a>
             <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 12,9Z"/></svg>
                 <span class="link-text">Instagram</span>
                 <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </a>
@@ -248,12 +248,11 @@
                 }
             });
 
-            // --- 2. TITEL ---
-            // Faded smooth aus, bleibt zentriert
+            // --- 2. TITEL FADE OUT ---
             gsap.to("#intro", {
                 scrollTrigger: { trigger: "body", start: "top top", end: "30% top", scrub: true },
                 opacity: 0, 
-                scale: 0.9, // Zoomt minimal weg
+                scale: 0.9, 
                 filter: "blur(20px)",
             });
 
