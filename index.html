@@ -19,17 +19,19 @@
             background-color: var(--bg-color);
             font-family: 'Inter', sans-serif;
             width: 100%;
+            height: 100%;
             overscroll-behavior: none;
             -webkit-font-smoothing: antialiased;
-            /* Scrollbar ausblenden */
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
         body::-webkit-scrollbar { display: none; }
 
-        /* --- FIXED CONTAINER (Hält alles fest) --- */
+        /* --- FIXED CONTAINER (100dvh für Mobile Browser Bars) --- */
         .fixed-stage {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            position: fixed; top: 0; left: 0; width: 100%; 
+            height: 100vh; /* Fallback */
+            height: 100dvh; /* Dynamic Viewport Height - WICHTIG für Mobile */
             overflow: hidden; z-index: 1;
         }
 
@@ -39,24 +41,29 @@
             object-fit: cover; 
             object-position: center center;
             display: block;
-            will-change: filter; /* Hardware-Beschleunigung für Blur */
+            will-change: filter; 
         }
 
-        /* --- UI LAYER (TITEL) --- */
+        /* --- UI LAYER --- */
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
             display: flex; flex-direction: column; justify-content: center; align-items: center; 
         }
+        
         .hero-title { 
             font-size: clamp(3rem, 10vw, 8rem); font-weight: 900; text-align: center; 
             line-height: 0.9; color: white; 
             text-shadow: 0 0 40px rgba(255,255,255,0.2); mix-blend-mode: overlay; 
-            transform-origin: center;
         }
+
+        /* Responsive Positionierung für "Scroll to Fall" */
         .scroll-hint { 
-            position: absolute; bottom: 8vh; font-size: 0.7rem; letter-spacing: 0.4em; 
+            position: absolute; 
+            bottom: 10dvh; /* Sicherer Abstand auf Handys */
+            font-size: 0.7rem; letter-spacing: 0.4em; 
             color: white; animation: bounce 2s infinite; opacity: 0.8; 
+            width: 100%; text-align: center;
         }
         @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
 
@@ -64,9 +71,10 @@
         .links-container { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            perspective: 1000px; /* Für 3D Effekt */
-            pointer-events: none;
+            perspective: 1000px;
+            pointer-events: none; /* Container blockiert nichts */
         }
+
         .link-card { 
             width: 90%; max-width: 380px; padding: 20px 30px; margin: 10px 0; 
             background: rgba(255, 255, 255, 0.15); 
@@ -76,18 +84,20 @@
             text-decoration: none; color: white; font-weight: 900; font-size: 1.1rem; text-transform: uppercase; 
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); 
             
-            /* Startzustand für Animation */
+            /* Startzustand: Unsichtbar & NICHT KLICKBAR */
+            visibility: hidden; 
             opacity: 0; 
-            transform: translateY(100px) rotateX(20deg) scale(0.9);
+            transform: translateY(120px) rotateX(20deg) scale(0.9);
             transform-origin: center bottom;
             
             transition: background 0.3s, color 0.3s, box-shadow 0.3s, transform 0.2s; 
-            pointer-events: auto; /* Buttons müssen klickbar sein */
+            pointer-events: auto; /* Erst klickbar wenn sichtbar (durch GSAP gesteuert) */
         }
+
         .link-card:hover { 
             background: white; color: black; 
             box-shadow: 0 10px 50px rgba(255,255,255,0.4); 
-            transform: scale(1.05) translateY(0) rotateX(0) !important; /* Override GSAP on Hover */
+            transform: scale(1.05) translateY(0) rotateX(0) !important;
         }
         .icon { width: 24px; height: 24px; fill: white; transition: fill 0.2s; }
         .link-card:hover .icon { fill: black; }
@@ -137,81 +147,76 @@
         gsap.registerPlugin(ScrollTrigger);
         const video = document.getElementById('video');
 
-        // Scrollbereich definieren (3.5x Bildschirmhöhe)
+        // Scrollbereich festlegen (3.5x Höhe für angenehmes Tempo)
         document.body.style.height = "350vh";
 
-        // Video sofort aktivieren (Bugfix für Safari/Mobile)
+        // Video Aktivierung
         video.play().then(() => video.pause()).catch(() => {});
 
-        // --- CORE ANIMATION FUNCTION ---
+        // --- CORE LOGIC ---
         function initJourney() {
-            // 1. VIDEO-STEUERUNG (ANTI-BLACK-SCREEN)
             let duration = video.duration || 10;
-            // WICHTIG: Puffer abziehen. Video endet bei 99.9%, niemals bei 100% (was schwarz sein kann)
+            // Puffer um schwarzen Screen am Ende zu verhindern (99.9% Stop)
             let safeDuration = duration - 0.05; 
             
-            // Video-Steuerung via Scroll
+            // 1. VIDEO SCRUBBING
             let tlVideo = gsap.timeline({
                 scrollTrigger: {
                     trigger: "body",
                     start: "top top",
                     end: "bottom bottom",
-                    scrub: 1, // 1s Glättung für weiches "Nachziehen"
+                    scrub: 1, // Smoothness
                 }
             });
             
-            // Wir animieren die currentTime des Videos manuell via onUpdate
             tlVideo.to(video, {
                 currentTime: safeDuration,
-                ease: "none", // Lineare Wiedergabe
-                onUpdate: function() {
-                    // Sicherheitscheck, damit es nicht springt
-                    if(video.readyState >= 1) {
-                         // Erzwingt, dass Video nie über das Ende hinausgeht
-                        if (video.currentTime >= safeDuration) video.pause();
-                    }
+                ease: "none",
+                onUpdate: () => {
+                    // Sicherheitsnetz
+                    if(video.currentTime >= safeDuration) video.pause();
                 }
             });
-
 
             // 2. TEXT AUSBLENDEN
             gsap.to("#intro", {
-                scrollTrigger: { trigger: "body", start: "top top", end: "20% top", scrub: true },
+                scrollTrigger: { trigger: "body", start: "top top", end: "25% top", scrub: true },
                 opacity: 0, scale: 0.8, filter: "blur(10px)"
             });
 
-
-            // 3. BUTTONS & BLUR (DER KREATIVE TEIL)
-            // Startet VIEL FRÜHER (bei 35% Scroll) und läuft bis ca. 90%
+            // 3. BUTTONS & BLUR (SPÄTER & SMOOTHER)
+            // Startet jetzt erst bei 45% (vorher 35%), also deutlich später
             let tlOutro = gsap.timeline({
                 scrollTrigger: {
                     trigger: "body",
-                    start: "35% top", 
-                    end: "90% bottom",
-                    scrub: 0.5 // Etwas direkter als das Video
+                    start: "45% top", 
+                    end: "95% bottom", // Geht bis fast ganz zum Ende
+                    scrub: 1 // Langsamerer, weicherer Übergang
                 }
             });
 
-            // A) Hintergrund langsam unscharf machen
-            tlOutro.to(video, { filter: "blur(20px)", ease: "none" }, 0);
+            // A) Blur: Startet synchron, nimmt langsam zu
+            tlOutro.to(video, { filter: "blur(20px)", ease: "power1.inOut" }, 0);
 
-            // B) Buttons fliegen nacheinander ein (Creative Flow)
-            // Die Buttons fangen an sich zu bewegen, sobald der Blur startet
+            // B) Buttons: Kommen rein
+            // 'autoAlpha: 1' ist der Schlüssel: Es setzt visibility: visible UND opacity: 1
+            // Dadurch sind die Buttons vorher NICHT klickbar.
             tlOutro.to(".link-card", {
-                opacity: 1,
+                autoAlpha: 1, // Bugfix für Interaktion
                 y: 0,
                 rotateX: 0,
                 scale: 1,
-                stagger: 0.15, // Schöner Domino-Effekt
-                ease: "power2.out" // Organische Bewegung
-            }, 0);
+                stagger: 0.2, // Langsames Nacheinander
+                ease: "power2.out"
+            }, 0.1); // Startet minimal nach dem Blur
         }
 
-        // Starte Logik sobald Metadaten da sind (oder Fallback nach 500ms)
+        // Init Check
         if (video.readyState >= 1) {
             initJourney();
         } else {
             video.onloadedmetadata = initJourney;
+            // Notfall-Start nach 500ms falls Metadata hängt
             setTimeout(() => { if(!ScrollTrigger.getAll().length) initJourney(); }, 500);
         }
 
