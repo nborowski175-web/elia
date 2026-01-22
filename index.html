@@ -29,6 +29,7 @@
             height: 100vh; height: 100dvh; 
             overflow: hidden; z-index: 1;
             background: #000;
+            /* Hardware-Beschleunigung erzwingen */
             transform: translate3d(0, 0, 0);
             backface-visibility: hidden;
             perspective: 1000px;
@@ -39,7 +40,7 @@
             object-fit: cover; object-position: center center;
             display: block; 
             opacity: 0; 
-            transition: opacity 1.0s ease-out;
+            transition: opacity 0.8s ease-out; /* Schnelleres Einblenden */
             will-change: transform;
             transform: translate3d(0, 0, 0); 
         }
@@ -48,6 +49,7 @@
 
         /* --- LOADER --- */
         .loader-container {
+            /* 45% Höhe: Perfekt mittig zwischen Mond und Schrift */
             position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
             z-index: 100; display: flex; flex-direction: column; align-items: center;
             transition: opacity 0.5s; pointer-events: none;
@@ -105,8 +107,11 @@
             display: grid; grid-template-columns: 32px 1fr 20px; align-items: center; gap: 25px;
             width: auto; min-width: 320px; max-width: 420px;
             padding: 24px 36px; margin: 14px 0; 
+            
+            /* High-End Design */
             background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
+            
             border-radius: 60px; text-decoration: none; color: white; 
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); 
             visibility: hidden; opacity: 0; transform: translateY(100px); 
@@ -118,7 +123,7 @@
         .icon { width: 32px; height: 32px; fill: white; display: block; }
         .arrow-icon { width: 20px; height: 20px; fill: rgba(255,255,255,0.7); display: block; transition: transform 0.2s; }
 
-        /* --- FOOTER --- */
+        /* --- LEGAL FOOTER --- */
         .legal-footer {
             margin-top: 40px;
             display: flex; gap: 20px;
@@ -166,7 +171,7 @@
             <div class="progress-text" id="progressText">WAITING...</div>
         </div>
         
-        <video id="video" muted playsinline webkit-playsinline></video>
+        <video id="video" muted playsinline webkit-playsinline preload="auto"></video>
 
         <div class="links-container" id="outro">
             <a href="#" class="link-card" onclick="nav(event, 'https://spotify.com')">
@@ -209,37 +214,36 @@
         
         document.body.style.height = "350vh"; 
 
-        /* --- CONFIG & VIDEO SELECTION --- */
-        // Priorität: IMMER 'journey.mp4', außer es geht nicht anders.
+        /* --- 1. INTELLIGENTE VIDEO-WAHL --- */
+        // Standard: IMMER HD für maximale Qualität
         let videoSrc = 'journey.mp4'; 
         
-        // Netz-Check: Nur bei explizit langsamer Verbindung (2G) wechseln wir
+        // Netz-Check: Nur bei explizit langsamer Verbindung (2G/Slow-2G) oder Data-Saver
         const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        let isSlowConnection = false;
+        let forceLowQuality = false;
         
         if (connection) {
+            // Nur wechseln, wenn es wirklich nötig ist (Funkloch oder Sparmodus)
             if (connection.saveData === true || connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
-                isSlowConnection = true;
+                forceLowQuality = true;
             }
         }
 
-        // NUR wenn wirklich nötig auf Low-Quality wechseln. Sonst bleibt HD.
-        if (isSlowConnection) {
+        if (forceLowQuality) {
             videoSrc = 'journey_langsam.mp4';
         }
 
-        /* --- OS DETECTION --- */
+        /* --- 2. OS DETECTION --- */
         const ua = navigator.userAgent.toLowerCase();
         const isAndroid = /android/.test(ua);
-        const isApple = /mac|iphone|ipad|ipod/.test(ua);
-
-        /* --- PERFORMANCE LOGIK --- */
+        
+        /* --- 3. PERFORMANCE LOGIK --- */
         let isReady = false;
-        // 30 FPS Limit für Android
+        // Limitierung für Android: 30 FPS, damit HD Videos flüssig scrollen
         const frameInterval = isAndroid ? 33 : 0; 
         let lastFrameTime = 0;
 
-        /* --- DOWNLOAD --- */
+        /* --- 4. DOWNLOAD & START --- */
         function loadVideo() {
             const req = new XMLHttpRequest();
             req.open('GET', videoSrc, true);
@@ -260,41 +264,43 @@
                     video.src = vid;
                     video.load();
 
-                    // FIX FÜR SCHWARZES BILD: 
-                    // Warten auf 'seeked' Event, um sicherzugehen, dass Bild da ist.
-                    
+                    // --- ANTI-SCHWARZ-BILD LOGIK ---
                     const onFrameReady = () => {
                         if (isReady) return;
                         isReady = true;
                         
-                        // Alles bereit -> UI anzeigen
+                        // Video sichtbar schalten
                         loaderContainer.classList.add('hidden');
                         video.classList.add('is-active');
+                        
                         initScrollLogic();
                     };
 
+                    // Wir setzen die Zeit minimal, um das Rendering zu erzwingen
                     video.onloadeddata = () => {
-                        video.currentTime = 0.001; // Trigger seek
+                        video.currentTime = 0.001; 
                     };
 
-                    // Der Schlüssel gegen schwarze Frames:
-                    video.onseeked = onFrameReady; 
+                    // Das 'seeked' Event feuert erst, wenn das Bild wirklich fertig ist
+                    video.onseeked = onFrameReady;
 
-                    // Fallback: Wenn 'seeked' hängt, starte trotzdem nach 500ms
+                    // Fallback: Manchmal feuert seeked nicht auf Android -> Timeout Rettung
                     setTimeout(() => {
                         if (!isReady) {
-                            console.log("Force start (Timeout)");
+                            console.log("Force start via Timeout");
                             onFrameReady();
                         }
-                    }, 500);
+                    }, 800);
                 }
             };
             
             req.onerror = function() { 
-                if (videoSrc !== 'journey.mp4') {
-                    videoSrc = 'journey.mp4';
+                // Fallback: Wenn HD fehlschlägt, probiere Low-Res
+                if (videoSrc === 'journey.mp4') {
+                    videoSrc = 'journey_langsam.mp4';
                     loadVideo();
                 } else {
+                    // Letzter Ausweg
                     loaderContainer.classList.add('hidden');
                     video.classList.add('is-active');
                     initScrollLogic();
@@ -305,7 +311,7 @@
 
         loadVideo();
 
-        /* --- 4. ENGINE --- */
+        /* --- 5. RENDER ENGINE --- */
         function initScrollLogic() {
             const duration = video.duration || 10;
             const safeDuration = duration - 0.1;
@@ -321,13 +327,15 @@
             });
 
             function render(now) {
+                // Interpolation: Android direkter (0.12), andere weicher (0.08)
                 const lerp = isAndroid ? 0.12 : 0.08;
                 currentTime += (targetTime - currentTime) * lerp;
 
                 const delta = now - lastFrameTime;
 
-                // PERFORMANCE BOOST: Prüfen ob Video gerade seekt (!video.seeking)
-                // Wichtig für Android: Kein Update, wenn Video noch busy ist.
+                // PERFORMANCE BOOST: 
+                // 1. Android Limit beachten (frameInterval)
+                // 2. !video.seeking: Nicht updaten, wenn der Player noch beschäftigt ist (wichtig gegen Ruckeln)
                 if (delta > frameInterval && !video.seeking) {
                     if (Math.abs(currentTime - video.currentTime) > 0.001) {
                          video.currentTime = Number(currentTime.toFixed(3));
@@ -350,13 +358,13 @@
 
             tlOutro.to(video, { filter: "blur(25px)", ease: "power1.inOut" }, 0);
             
-            // Buttons Animation
+            // Buttons
             tlOutro.fromTo(".link-card", 
                 { autoAlpha: 0, y: 60, scale: 0.95 },
                 { autoAlpha: 1, y: 0, scale: 1, stagger: 0.12, ease: "power2.out", immediateRender: false }, 
             0.1);
 
-            // FOOTER ANIMATION
+            // Footer (Legal)
             tlOutro.fromTo(".legal-footer",
                 { autoAlpha: 0, y: 20 },
                 { autoAlpha: 1, y: 0, ease: "power2.out" },
