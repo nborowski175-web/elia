@@ -35,67 +35,77 @@
         video { 
             width: 100%; height: 100%; 
             object-fit: cover; object-position: center center;
-            display: block; opacity: 0; transition: opacity 1s;
+            display: block; opacity: 0; transition: opacity 1.5s ease-in;
+            will-change: contents; /* Optimierung für Rendering */
         }
         
         video.loaded { opacity: 1; }
 
-        /* Loader Animation */
+        /* Loader */
         .loader {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 40px; height: 40px;
             border: 3px solid rgba(255,255,255,0.1);
             border-top-color: white; border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            z-index: 0; pointer-events: none;
-            transition: opacity 0.5s;
+            z-index: 0; pointer-events: none; transition: opacity 0.5s;
         }
         .loader.hidden { opacity: 0; }
         @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 
-        /* --- UI LAYER (TITEL TIEF POSITIONIERT) --- */
+        /* --- UI LAYER --- */
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
-            display: flex; flex-direction: column; 
-            
-            /* ALLES NACH UNTEN */
-            justify-content: flex-end; 
-            /* Abstand vom Boden: Hält den Titel über dem Scroll-Hinweis */
-            padding-bottom: 16vh; 
-            
-            align-items: center; 
+            /* Flexbox für vertikale Zentrierung */
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         
+        /* TEXT POSITIONIERUNG & LOOK */
         .hero-title { 
-            font-size: clamp(3.5rem, 12vw, 9rem); 
+            position: absolute;
+            /* 60% von oben = Perfekter Spot unter dem Gesicht, über dem Bauchnabel */
+            top: 60%; 
+            transform: translateY(-50%);
+            
+            font-size: clamp(3.5rem, 11vw, 9.5rem); 
             font-weight: 900; 
             text-align: center; 
             line-height: 0.9; 
+            width: 100%;
             
-            /* High-End Blending */
-            color: rgba(255, 255, 255, 0.95);
-            mix-blend-mode: overlay; 
-            text-shadow: 0 0 50px rgba(255,255,255,0.3);
+            /* INTEGRATION IN DEN HINTERGRUND */
+            color: rgba(255, 255, 255, 0.9); /* Leicht transparent */
+            mix-blend-mode: overlay; /* Verschmilzt mit dem Video */
             
+            /* ZUSATZ: Ein ganz leichter Verlauf, damit es unten mehr verschwimmt */
+            mask-image: linear-gradient(to bottom, black 50%, rgba(0,0,0,0.6) 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 50%, rgba(0,0,0,0.6) 100%);
+
+            text-shadow: 0 0 40px rgba(255,255,255,0.25);
             letter-spacing: -0.04em; 
             margin: 0;
-            will-change: transform, opacity;
+            will-change: transform, opacity, filter;
         }
 
         .scroll-hint { 
-            /* Fix am absoluten Boden */
             position: absolute; 
-            bottom: 6dvh; 
+            /* Weiter nach oben gezogen für mehr Aufmerksamkeit */
+            bottom: 12dvh; 
             
-            font-size: 0.75rem; letter-spacing: 0.3em; font-weight: 600;
-            color: rgba(255,255,255,0.85); text-transform: uppercase;
-            animation: breathe 3s ease-in-out infinite;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            font-size: 0.75rem; letter-spacing: 0.35em; font-weight: 700;
+            color: rgba(255,255,255,0.9); text-transform: uppercase;
+            
+            /* Dynamischere Animation */
+            animation: breathe 2.5s ease-in-out infinite;
+            text-shadow: 0 2px 15px rgba(0,0,0,0.6);
         }
+        
+        /* Mehr Bewegung (Amplitude erhöht) */
         @keyframes breathe { 
-            0%, 100% { opacity: 0.6; transform: translateY(0); } 
-            50% { opacity: 1; transform: translateY(5px); } 
+            0% { opacity: 0.5; transform: translateY(0); } 
+            50% { opacity: 1; transform: translateY(12px); } /* Stärkerer Hub */
+            100% { opacity: 0.5; transform: translateY(0); } 
         }
 
         /* --- BUTTONS --- */
@@ -108,20 +118,24 @@
 
         .link-card { 
             display: grid; 
-            grid-template-columns: 28px 1fr 18px; 
-            align-items: center; gap: 20px;
-            width: auto; min-width: 300px; max-width: 400px;
-            padding: 22px 32px; margin: 12px 0; 
+            grid-template-columns: 32px 1fr 20px; /* Alles etwas größer */
+            align-items: center; gap: 25px;
+
+            width: auto; 
+            min-width: 320px; /* Breiter */
+            max-width: 420px;
             
-            /* DUNKLES GLAS */
+            /* Mehr Luft zwischen den Buttons */
+            margin: 14px 0; 
+            padding: 24px 36px; 
+            
             background: rgba(0, 0, 0, 0.35); 
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
             border-radius: 60px; 
             
             text-decoration: none; color: white; 
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); 
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); 
             
             visibility: hidden; opacity: 0; transform: translateY(100px); 
             transition: background 0.3s, transform 0.2s, border-color 0.3s;
@@ -129,18 +143,18 @@
         }
 
         .link-text {
-            font-weight: 700; font-size: 1.1rem; 
+            font-weight: 700; font-size: 1.2rem; /* Größere Schrift */
             text-transform: uppercase; letter-spacing: 0.05em;
             text-align: left; opacity: 1;
         }
 
-        .icon { width: 28px; height: 28px; fill: white; display: block; opacity: 1; }
-        .arrow-icon { width: 18px; height: 18px; fill: rgba(255,255,255,0.7); display: block; transition: transform 0.2s; }
+        .icon { width: 32px; height: 32px; fill: white; display: block; opacity: 1; }
+        .arrow-icon { width: 20px; height: 20px; fill: rgba(255,255,255,0.7); display: block; transition: transform 0.2s; }
 
         @media (hover: hover) {
             .link-card:hover { 
                 background: rgba(255, 255, 255, 1); border-color: white;
-                transform: scale(1.03) !important; text-shadow: none;
+                transform: scale(1.03) !important;
             }
             .link-card:hover .link-text { color: black; }
             .link-card:hover .icon { fill: black; }
@@ -153,10 +167,8 @@
             transform-origin: bottom; pointer-events: none; 
         }
 
-        /* Landscape Adjustment */
         @media (max-height: 500px) and (orientation: landscape) {
-            .hero-title { font-size: 2.2rem; }
-            .ui-layer { padding-bottom: 12vh; justify-content: flex-end; }
+            .hero-title { font-size: 2.5rem; top: 50%; }
             .link-card { padding: 10px 24px; margin: 5px 0; min-width: 220px; transform: scale(0.9); }
         }
     </style>
@@ -191,7 +203,7 @@
                 <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </a>
             <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 12,9Z"/></svg>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
                 <span class="link-text">Instagram</span>
                 <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </a>
@@ -207,16 +219,18 @@
 
         document.body.style.height = "350vh"; 
 
+        // Initialisierung
         video.play().then(() => {
             video.pause();
             video.classList.add('loaded');
             loader.classList.add('hidden');
         }).catch(() => {
+            // Autoplay-Sperre Fallback
             video.classList.add('loaded');
             loader.classList.add('hidden');
         });
 
-        // --- SMART SMOOTH SCROLLING ---
+        // --- ANDROID GLIDE ENGINE ---
         function initJourney() {
             let duration = video.duration || 10;
             let safeDuration = duration - 0.1; 
@@ -232,10 +246,16 @@
                 }
             });
 
+            // "Soft-Glide" Ticker
+            // Wir verringern den Faktor auf 0.08 für noch weicheres Nachziehen
+            // Das gibt langsamen Handys mehr Zeit zum Decodieren
             gsap.ticker.add(() => {
                 if(video.readyState >= 1) {
-                    state.current += (state.target - state.current) * 0.1;
-                    if (!video.seeking && Math.abs(state.current - video.currentTime) > 0.03) {
+                    // 0.08 = Sehr weiches, filmisches "Nachziehen"
+                    state.current += (state.target - state.current) * 0.08; 
+                    
+                    // Deadzone erhöht auf 0.04s, damit das Handy nicht für micro-frames arbeitet
+                    if (!video.seeking && Math.abs(state.current - video.currentTime) > 0.04) {
                         video.currentTime = state.current;
                     }
                 }
