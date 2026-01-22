@@ -29,25 +29,185 @@
             height: 100vh; height: 100dvh; 
             overflow: hidden; z-index: 1;
             background: #000;
-            transform: translate3d(0, 0, 0);
-            backface-visibility: hidden;
-            perspective: 1000px;
         }
 
         video { 
             width: 100%; height: 100%; 
-            object-fit: cover; object-position: center center;
+            object-fit: cover; 
+            object-position: center center;
             display: block; 
             opacity: 0; 
-            transition: opacity 0.6s ease-out;
+            transition: opacity 1s ease-out; /* Weiches Einblenden gegen schwarze Blitzer */
             will-change: transform;
             transform: translate3d(0, 0, 0); 
+            background: #000; /* Verhindert graue Flächen */
         }
-        
         video.is-active { opacity: 1; }
 
-        /* Loader */
+        /* --- UI LAYER (Responsive Placement) --- */
+        .ui-layer { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 10; pointer-events: none; 
+            display: flex; flex-direction: column;
+            padding: 5vh 8vw;
+        }
+        
+        .hero-title { 
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: clamp(3.2rem, 11vw, 10rem); 
+            font-weight: 900; line-height: 0.85; letter-spacing: -0.05em; 
+            color: rgba(255, 255, 255, 0.9); mix-blend-mode: overlay; 
+            text-shadow: 0 0 50px rgba(0,0,0,0.6);
+            margin: 0; will-change: transform, opacity;
+        }
+
+        /* Desktop Optimierung: Titel links */
+        @media (min-width: 1025px) {
+            .hero-title {
+                justify-content: flex-start;
+                text-align: left;
+                font-size: 7.5vw;
+                max-width: 60%;
+            }
+        }
+
+        .scroll-hint { 
+            text-align: center;
+            font-size: 0.65rem; letter-spacing: 0.45em; font-weight: 800;
+            color: rgba(255,255,255,0.6); text-transform: uppercase;
+            animation: breathe 3s ease-in-out infinite;
+            padding-bottom: 4vh;
+        }
+        @keyframes breathe { 0% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(8px); } 100% { opacity: 0.3; transform: translateY(0); } }
+
+        /* --- LOADER --- */
         .loader-container {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             z-index: 100; display: flex; flex-direction: column; align-items: center;
-            transition: opacity 0.5s; pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        .loader-container.hidden { opacity: 0; }
+        .loader {
+            width: 35px; height: 35px; border: 2px solid rgba(255,255,255,0.1); 
+            border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- LINKS CONTAINER --- */
+        .links-container { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 20; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; pointer-events: none; 
+        }
+
+        #outro { display: flex; flex-direction: column; gap: 18px; }
+
+        /* Buttons nebeneinander auf Desktop */
+        @media (min-width: 1025px) {
+            #outro { flex-direction: row; gap: 30px; }
+        }
+
+        .link-card { 
+            display: grid; grid-template-columns: 24px 1fr 15px; align-items: center; gap: 20px;
+            width: 290px; padding: 22px 30px; 
+            background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
+            border-radius: 100px; text-decoration: none; color: white; 
+            visibility: hidden; opacity: 0; transform: translateY(30px); 
+            pointer-events: auto; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .link-text { font-weight: 700; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .icon { width: 22px; height: 22px; fill: white; }
+        
+        @media (hover: hover) {
+            .link-card:hover { background: white; color: black; transform: translateY(-8px) !important; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+            .link-card:hover .icon { fill: black; }
+        }
+
+        .flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10001; transform: scaleY(0); transform-origin: bottom; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <div class="fixed-stage">
+        <div class="ui-layer" id="intro">
+            <h1 class="hero-title">KOMM MIT<br>AUF MEINE<br>REISE</h1>
+            <div class="scroll-hint">SCROLL TO FALL</div>
+        </div>
+
+        <div class="loader-container" id="loaderContainer">
+            <div class="loader"></div>
+        </div>
+        
+        <video id="video" muted playsinline webkit-playsinline preload="auto"></video>
+
+        <div class="links-container">
+            <div id="outro">
+                <a href="#" class="link-card" onclick="nav(event, 'https://spotify.com')">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg>
+                    <span class="link-text">Spotify</span>
+                    <span style="opacity:0.5">→</span>
+                </a>
+                <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')">
+                    <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
+                    <span class="link-text">Instagram</span>
+                    <span style="opacity:0.5">→</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="flash"></div>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        const video = document.getElementById('video');
+        
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const conn = navigator.connection || {};
+        
+        // --- VIDEO WEICHE ---
+        let videoSrc = isMobile ? 'journey_mid.mp4' : 'journey_web.mp4';
+        if (conn.saveData || (conn.effectiveType && /2g|3g/.test(conn.effectiveType))) {
+            videoSrc = 'journey_low.mp4';
+        }
+
+        function loadVideo() {
+            const req = new XMLHttpRequest();
+            req.open('GET', videoSrc, true);
+            req.responseType = 'blob';
+            req.onload = function() {
+                if (this.status === 200) {
+                    video.src = URL.createObjectURL(this.response);
+                    video.classList.add('is-active');
+                    document.getElementById('loaderContainer').classList.add('hidden');
+                    initScroll();
+                }
+            };
+            req.send();
+        }
+
+        function initScroll() {
+            ScrollTrigger.create({
+                trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.05,
+                onUpdate: self => {
+                    if(video.duration) video.currentTime = self.progress * (video.duration - 0.1);
+                }
+            });
+
+            gsap.to("#intro", { scrollTrigger: { scrub: true, start: "top top", end: "25% top" }, opacity: 0, y: -80, scale: 0.9 });
+            gsap.to(".link-card", { scrollTrigger: { scrub: true, start: "65% top", end: "95% top" }, autoAlpha: 1, y: 0, stagger: 0.1 });
+        }
+
+        function nav(e, url) { e.preventDefault(); gsap.to(".flash", { scaleY: 1, duration: 0.4, onComplete: () => window.location.href = url }); }
+        
+        document.body.style.height = "400vh";
+        loadVideo();
+    </script>
+</body>
+</html>
