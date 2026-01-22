@@ -40,7 +40,7 @@
         
         video.loaded { opacity: 1; }
 
-        /* --- LOADING SPINNER --- */
+        /* Loader Animation */
         .loader {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 40px; height: 40px;
@@ -53,15 +53,16 @@
         .loader.hidden { opacity: 0; }
         @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 
-        /* --- UI LAYER (PERFEKTE POSITION) --- */
+        /* --- UI LAYER (TITEL TIEF POSITIONIERT) --- */
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
             display: flex; flex-direction: column; 
             
-            /* KREATIVE POSITIONIERUNG: 38% von oben = Goldener Schnitt über Torso */
-            justify-content: flex-start; 
-            padding-top: 38vh; 
+            /* ALLES NACH UNTEN */
+            justify-content: flex-end; 
+            /* Abstand vom Boden: Hält den Titel über dem Scroll-Hinweis */
+            padding-bottom: 16vh; 
             
             align-items: center; 
         }
@@ -72,10 +73,10 @@
             text-align: center; 
             line-height: 0.9; 
             
-            /* HIGH-END BLENDING */
+            /* High-End Blending */
             color: rgba(255, 255, 255, 0.95);
             mix-blend-mode: overlay; 
-            text-shadow: 0 0 40px rgba(255,255,255,0.25);
+            text-shadow: 0 0 50px rgba(255,255,255,0.3);
             
             letter-spacing: -0.04em; 
             margin: 0;
@@ -83,7 +84,10 @@
         }
 
         .scroll-hint { 
-            position: absolute; bottom: 8dvh; 
+            /* Fix am absoluten Boden */
+            position: absolute; 
+            bottom: 6dvh; 
+            
             font-size: 0.75rem; letter-spacing: 0.3em; font-weight: 600;
             color: rgba(255,255,255,0.85); text-transform: uppercase;
             animation: breathe 3s ease-in-out infinite;
@@ -91,7 +95,7 @@
         }
         @keyframes breathe { 
             0%, 100% { opacity: 0.6; transform: translateY(0); } 
-            50% { opacity: 1; transform: translateY(6px); } 
+            50% { opacity: 1; transform: translateY(5px); } 
         }
 
         /* --- BUTTONS --- */
@@ -109,7 +113,7 @@
             width: auto; min-width: 300px; max-width: 400px;
             padding: 22px 32px; margin: 12px 0; 
             
-            /* DUNKLES GLAS für besten Kontrast */
+            /* DUNKLES GLAS */
             background: rgba(0, 0, 0, 0.35); 
             border: 1px solid rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
@@ -149,9 +153,10 @@
             transform-origin: bottom; pointer-events: none; 
         }
 
+        /* Landscape Adjustment */
         @media (max-height: 500px) and (orientation: landscape) {
-            .hero-title { font-size: 2.5rem; }
-            .ui-layer { padding-top: 5vh; justify-content: center; }
+            .hero-title { font-size: 2.2rem; }
+            .ui-layer { padding-bottom: 12vh; justify-content: flex-end; }
             .link-card { padding: 10px 24px; margin: 5px 0; min-width: 220px; transform: scale(0.9); }
         }
     </style>
@@ -202,26 +207,22 @@
 
         document.body.style.height = "350vh"; 
 
-        // Starten, um Buffer zu füllen
         video.play().then(() => {
             video.pause();
-            video.classList.add('loaded'); // Erst zeigen wenn bereit
+            video.classList.add('loaded');
             loader.classList.add('hidden');
         }).catch(() => {
-            // Falls Autoplay blockiert, trotzdem UI zeigen
             video.classList.add('loaded');
             loader.classList.add('hidden');
         });
 
-        // --- ANDROID/WEAK CONNECTION ENGINE ---
+        // --- SMART SMOOTH SCROLLING ---
         function initJourney() {
             let duration = video.duration || 10;
             let safeDuration = duration - 0.1; 
             
-            // State speichert wo wir sind und wo wir hinwollen
             let state = { current: 0, target: 0 };
 
-            // 1. Scroll steuert nur das ZIEL
             ScrollTrigger.create({
                 trigger: "body",
                 start: "top top",
@@ -231,15 +232,9 @@
                 }
             });
 
-            // 2. INTELLIGENTER TICKER
             gsap.ticker.add(() => {
                 if(video.readyState >= 1) {
-                    // Weiche Interpolation (0.1)
                     state.current += (state.target - state.current) * 0.1;
-                    
-                    // PERFORMANCE HACK:
-                    // Wenn wir nah genug dran sind ODER das Video gerade "seeking" ist (busy),
-                    // dann updaten wir NICHT. Das verhindert den Android-Crash.
                     if (!video.seeking && Math.abs(state.current - video.currentTime) > 0.03) {
                         video.currentTime = state.current;
                     }
