@@ -46,26 +46,25 @@
         
         video.is-active { opacity: 1; }
 
-        /* --- LOADER POSITION & STYLE --- */
+        /* --- LOADER POSITION & STYLE (ANGEPASST) --- */
         .loader-container {
-            /* Positioniert auf 80% Höhe, zwischen Titel und Scroll-Hint */
-            position: absolute; top: 80%; left: 50%; transform: translate(-50%, -50%);
+            /* Positioniert auf 40% Höhe - das ist über der Schrift (65%) und unter dem "Mond" */
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
             z-index: 100; display: flex; flex-direction: column; align-items: center;
             transition: opacity 0.5s; pointer-events: none;
-            /* KEIN HINTERGRUND MEHR */
+            /* KEIN HINTERGRUND */
         }
         .loader-container.hidden { opacity: 0; }
 
         .loader {
             width: 50px; height: 50px; margin-bottom: 15px;
-            border: 4px solid rgba(255,255,255,0.3); /* Etwas heller für Kontrast */
+            border: 4px solid rgba(255,255,255,0.3); 
             border-top-color: #ffffff; border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8)); /* Schatten für Sichtbarkeit */
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.8)); 
         }
         .progress-text {
             color: white; font-size: 14px; font-weight: 800; letter-spacing: 1.5px;
-            /* Starker Textschatten für maximalen Kontrast ohne Box */
             text-shadow: 0 2px 4px rgba(0,0,0,1), 0 0 15px rgba(0,0,0,0.7);
         }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -199,7 +198,7 @@
         const isApple = /mac|iphone|ipad|ipod/.test(ua);
         const isWindows = /win/.test(ua);
         
-        // Threshold Einstellung (wie zuvor diskutiert)
+        // Threshold Einstellung
         let updateThreshold;
         if (isApple) updateThreshold = 0.001;
         else if (isWindows) updateThreshold = 0.015;
