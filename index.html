@@ -7,10 +7,10 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
     <style>
-        :root { --bg-color: #000000; }
+        :root { --bg-color: #050505; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         html, body {
@@ -22,6 +22,7 @@
             height: 100%;
             overscroll-behavior: none;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
@@ -30,8 +31,7 @@
         /* --- FIXED CONTAINER --- */
         .fixed-stage {
             position: fixed; top: 0; left: 0; width: 100%; 
-            height: 100vh; 
-            height: 100dvh; 
+            height: 100vh; height: 100dvh; 
             overflow: hidden; z-index: 1;
         }
 
@@ -49,75 +49,111 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
             display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            /* Stellt sicher, dass der Titel immer perfekt mittig ist */
         }
         
+        /* Modernes, ästhetisches Font-Styling */
         .hero-title { 
-            font-size: clamp(3rem, 10vw, 8rem); font-weight: 900; text-align: center; 
-            line-height: 0.95; color: white; 
-            text-shadow: 0 0 50px rgba(255,255,255,0.15); mix-blend-mode: overlay; 
+            font-size: clamp(3rem, 11vw, 8.5rem); 
+            font-weight: 800; 
+            text-align: center; 
+            line-height: 0.92; 
+            color: white; 
+            letter-spacing: -0.02em;
+            /* Ästhetischer Blend-Mode statt harter Schatten */
+            mix-blend-mode: overlay;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
             margin: 0;
             will-change: transform, opacity, filter;
+            /* Sorgt dafür, dass der Text nicht zu breit wird */
+            max-width: 90%;
         }
 
         .scroll-hint { 
             position: absolute; 
             bottom: 8dvh; 
-            font-size: 0.7rem; letter-spacing: 0.4em; 
-            color: white; animation: bounce 2s infinite; opacity: 0.8; 
-            width: 100%; text-align: center;
+            font-size: 0.65rem; letter-spacing: 0.3em; font-weight: 600;
+            color: rgba(255,255,255,0.8); 
+            animation: bounce 2s infinite; 
+            text-transform: uppercase;
         }
-        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(6px)} }
 
-        /* --- BUTTONS --- */
+        /* --- BUTTONS CONTAINER --- */
         .links-container { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 20; display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            perspective: 1000px;
+            z-index: 20; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            perspective: 1200px; /* Tiefe für 3D Effekt */
             pointer-events: none; 
         }
 
+        /* --- MODERN BUTTON STYLE --- */
         .link-card { 
-            width: 90%; max-width: 380px; padding: 20px 30px; margin: 10px 0; 
-            
-            /* Optimierte Lesbarkeit: Etwas mehr Deckkraft und feiner Rahmen */
-            background: rgba(255, 255, 255, 0.22); 
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            /* Grid für perfekte Ausrichtung: Icon | Text | Pfeil */
+            display: grid;
+            grid-template-columns: 24px 1fr 16px;
+            align-items: center;
+            gap: 20px;
 
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
-            border-radius: 20px; 
-            display: flex; justify-content: center; align-items: center; gap: 15px; 
-            text-decoration: none; color: white; font-weight: 900; font-size: 1.1rem; text-transform: uppercase; 
+            width: 90%; max-width: 360px; 
+            padding: 18px 24px; 
+            margin: 8px 0; 
             
-            /* Textschatten für Kontrast */
-            text-shadow: 0 2px 10px rgba(0,0,0,0.4);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2); 
+            /* Glassmorphismus pur */
+            background: rgba(255, 255, 255, 0.12); 
+            border: 1px solid rgba(255, 255, 255, 0.15); /* Sehr feiner Rand */
             
-            /* Startzustand */
-            visibility: hidden; 
-            opacity: 0; 
+            /* Blur Effekt */
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); 
             
-            transition: background 0.3s, color 0.3s, box-shadow 0.3s, transform 0.2s; 
+            border-radius: 16px; 
+            text-decoration: none; color: white; 
+            
+            /* Startzustand für Animation (versteckt) */
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(60px) rotateX(15deg) scale(0.95);
+            
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.05); /* Sehr subtiler Schatten */
+            transition: background 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.2s;
             pointer-events: auto; 
         }
 
-        /* Hover nur auf Desktop/Maus */
-        @media (hover: hover) {
-            .link-card:hover { 
-                background: white; color: black; 
-                text-shadow: none;
-                box-shadow: 0 10px 50px rgba(255,255,255,0.5); 
-                transform: scale(1.05) !important; 
-            }
-            .link-card:hover .icon { fill: black; }
+        .link-text {
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: left; /* Text immer linksbündig */
+            white-space: nowrap;
         }
 
-        .icon { width: 24px; height: 24px; fill: white; transition: fill 0.2s; }
-        
+        /* Icons */
+        .icon { width: 24px; height: 24px; fill: white; display: block; }
+        .arrow-icon { width: 16px; height: 16px; fill: rgba(255,255,255,0.5); display: block; }
+
+        /* Hover (nur Desktop) */
+        @media (hover: hover) {
+            .link-card:hover { 
+                background: rgba(255, 255, 255, 1); 
+                transform: scale(1.02) translateY(0) rotateX(0) !important;
+                border-color: white;
+            }
+            .link-card:hover .link-text { color: black; }
+            .link-card:hover .icon { fill: black; }
+            .link-card:hover .arrow-icon { fill: black; }
+        }
+
         .flash { 
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: white; z-index: 10001; transform: scaleY(0); 
             transform-origin: bottom; pointer-events: none; 
+        }
+
+        /* Landscape Schutz */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .hero-title { font-size: 3rem; }
+            .link-card { padding: 10px 20px; margin: 4px 0; }
         }
     </style>
 </head>
@@ -136,19 +172,23 @@
         <div class="links-container" id="outro">
             <a href="#" class="link-card" onclick="nav(event, 'https://spotify.com')">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg>
-                <span>Spotify</span>
+                <span class="link-text">Spotify</span>
+                <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </a>
             <a href="#" class="link-card" onclick="nav(event, 'https://music.apple.com')">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.68-.83 1.14-1.99.94-3.14-1.02.04-2.22.68-2.93 1.52-.63.74-1.22 1.92-1.07 3.07 1.15.09 2.32-.59 3.06-1.45"/></svg>
-                <span>Apple Music</span>
+                <span class="link-text">Apple Music</span>
+                <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </a>
             <a href="#" class="link-card" onclick="nav(event, 'https://youtube.com')">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                <span>YouTube</span>
+                <span class="link-text">YouTube</span>
+                <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </a>
             <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')">
                 <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
-                <span>Instagram</span>
+                <span class="link-text">Instagram</span>
+                <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </a>
         </div>
     </div>
@@ -159,8 +199,8 @@
         gsap.registerPlugin(ScrollTrigger);
         const video = document.getElementById('video');
 
-        // Scrollbereich (3.5x Höhe)
-        document.body.style.height = "350vh";
+        // Scrollbereich festlegen (400vh für ein langes, ruhiges Gefühl)
+        document.body.style.height = "400vh";
 
         // Video Init
         video.play().then(() => video.pause()).catch(() => {});
@@ -169,7 +209,7 @@
             let duration = video.duration || 10;
             let safeDuration = duration - 0.05; 
             
-            // 1. VIDEO SCRUBBING
+            // --- 1. VIDEO SCRUBBING ---
             gsap.to(video, {
                 currentTime: safeDuration,
                 ease: "none",
@@ -181,50 +221,44 @@
                 }
             });
 
-            // 2. TEXT FADE OUT (ZENTRIERT & RUHIG)
-            // Fix: Text wandert nicht nach oben (y: 0), sondern zoomt leicht weg (scale: 0.9)
-            // und wird unscharf. Das wirkt ästhetischer und ruhiger.
+            // --- 2. TEXT FADE OUT ---
+            // Titel zoomt leicht raus und wird unscharf, bleibt aber mittig
             gsap.to("#intro", {
                 scrollTrigger: { trigger: "body", start: "top top", end: "30% top", scrub: true },
                 opacity: 0, 
                 scale: 0.9, 
                 filter: "blur(20px)",
-                y: 0 // Verhindert das "Hochwandern"
             });
 
-            // 3. BLUR & BUTTONS (SPÄTER START BEI 55%)
+            // --- 3. BLUR & BUTTONS ---
+            // Startet ab 45% des Weges
             let tlOutro = gsap.timeline({
                 scrollTrigger: {
                     trigger: "body",
-                    start: "55% top", 
+                    start: "45% top", 
                     end: "95% bottom",
                     scrub: 1
                 }
             });
 
-            // A) Blur
-            tlOutro.to(video, { filter: "blur(20px)", ease: "power1.inOut" }, 0);
+            // A) Blur Effekt
+            tlOutro.to(video, { filter: "blur(25px)", ease: "power1.inOut" }, 0);
 
-            // B) Buttons: Reset beim Hochscrollen durch fromTo
-            tlOutro.fromTo(".link-card", 
-                { 
-                    autoAlpha: 0, 
-                    y: 120, 
-                    rotateX: 20, 
-                    scale: 0.9 
-                },
-                {
-                    autoAlpha: 1, 
-                    y: 0,
-                    rotateX: 0,
-                    scale: 1,
-                    stagger: 0.2,
-                    ease: "power2.out",
-                    immediateRender: false 
-                }, 
-            0.1);
+            // B) Buttons Animation
+            // Wir nutzen eine einfache .to() Animation mit autoAlpha
+            // autoAlpha: 1 setzt visibility: visible und opacity: 1
+            // Wenn man zurückscrollt, dreht GSAP das automatisch um -> autoAlpha: 0 (unsichtbar)
+            tlOutro.to(".link-card", {
+                autoAlpha: 1, // Macht sie sichtbar und klickbar
+                y: 0,
+                rotateX: 0,
+                scale: 1,
+                stagger: 0.15, // Schöner Domino-Effekt
+                ease: "back.out(1.2)" // Kleiner "Bouncer" beim Reinkommen für organischen Look
+            }, 0.1);
         }
 
+        // Starte Logik
         if (video.readyState >= 1) {
             initJourney();
         } else {
