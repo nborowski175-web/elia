@@ -36,7 +36,7 @@
             width: 100%; height: 100%; 
             object-fit: cover; object-position: center center;
             display: block; opacity: 0; transition: opacity 1.5s ease-in;
-            will-change: contents; /* Optimierung für Rendering */
+            will-change: contents; 
         }
         
         video.loaded { opacity: 1; }
@@ -57,54 +57,55 @@
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
-            /* Flexbox für vertikale Zentrierung */
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            /* Keine Flexbox-Ausrichtung mehr für den Titel, wir positionieren absolut */
         }
         
         /* TEXT POSITIONIERUNG & LOOK */
         .hero-title { 
             position: absolute;
-            /* 60% von oben = Perfekter Spot unter dem Gesicht, über dem Bauchnabel */
-            top: 60%; 
-            transform: translateY(-50%);
+            /* POSITION: 65% von oben. Tiefer als Mitte, aber über dem Footer */
+            top: 65%; 
+            left: 50%;
+            transform: translate(-50%, -50%);
+            
+            width: 100%;
+            text-align: center;
             
             font-size: clamp(3.5rem, 11vw, 9.5rem); 
             font-weight: 900; 
-            text-align: center; 
             line-height: 0.9; 
-            width: 100%;
+            letter-spacing: -0.04em; 
             
-            /* INTEGRATION IN DEN HINTERGRUND */
-            color: rgba(255, 255, 255, 0.9); /* Leicht transparent */
+            /* CLEAN LOOK (Keine Ränder, volle Integration) */
+            color: rgba(255, 255, 255, 0.85); /* Leicht transparent */
             mix-blend-mode: overlay; /* Verschmilzt mit dem Video */
             
-            /* ZUSATZ: Ein ganz leichter Verlauf, damit es unten mehr verschwimmt */
-            mask-image: linear-gradient(to bottom, black 50%, rgba(0,0,0,0.6) 100%);
-            -webkit-mask-image: linear-gradient(to bottom, black 50%, rgba(0,0,0,0.6) 100%);
+            /* Soft Glow statt harter Schatten */
+            text-shadow: 
+                0 0 20px rgba(255,255,255,0.2), /* Innerer Glanz */
+                0 10px 40px rgba(0,0,0,0.3); /* Weicher Schatten für Lesbarkeit */
 
-            text-shadow: 0 0 40px rgba(255,255,255,0.25);
-            letter-spacing: -0.04em; 
             margin: 0;
-            will-change: transform, opacity, filter;
+            will-change: transform, opacity;
         }
 
         .scroll-hint { 
             position: absolute; 
-            /* Weiter nach oben gezogen für mehr Aufmerksamkeit */
-            bottom: 12dvh; 
+            /* Fix am Boden */
+            bottom: 10dvh; 
+            left: 0; width: 100%;
+            text-align: center;
             
             font-size: 0.75rem; letter-spacing: 0.35em; font-weight: 700;
             color: rgba(255,255,255,0.9); text-transform: uppercase;
             
-            /* Dynamischere Animation */
             animation: breathe 2.5s ease-in-out infinite;
             text-shadow: 0 2px 15px rgba(0,0,0,0.6);
         }
         
-        /* Mehr Bewegung (Amplitude erhöht) */
         @keyframes breathe { 
             0% { opacity: 0.5; transform: translateY(0); } 
-            50% { opacity: 1; transform: translateY(12px); } /* Stärkerer Hub */
+            50% { opacity: 1; transform: translateY(10px); } 
             100% { opacity: 0.5; transform: translateY(0); } 
         }
 
@@ -118,19 +119,19 @@
 
         .link-card { 
             display: grid; 
-            grid-template-columns: 32px 1fr 20px; /* Alles etwas größer */
+            grid-template-columns: 32px 1fr 20px; 
             align-items: center; gap: 25px;
 
             width: auto; 
-            min-width: 320px; /* Breiter */
+            min-width: 320px; 
             max-width: 420px;
             
-            /* Mehr Luft zwischen den Buttons */
             margin: 14px 0; 
             padding: 24px 36px; 
             
-            background: rgba(0, 0, 0, 0.35); 
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            /* DUNKLES GLAS - Klares Design */
+            background: rgba(0, 0, 0, 0.4); 
+            border: 1px solid rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
             border-radius: 60px; 
             
@@ -143,7 +144,7 @@
         }
 
         .link-text {
-            font-weight: 700; font-size: 1.2rem; /* Größere Schrift */
+            font-weight: 700; font-size: 1.2rem; 
             text-transform: uppercase; letter-spacing: 0.05em;
             text-align: left; opacity: 1;
         }
@@ -219,18 +220,16 @@
 
         document.body.style.height = "350vh"; 
 
-        // Initialisierung
         video.play().then(() => {
             video.pause();
             video.classList.add('loaded');
             loader.classList.add('hidden');
         }).catch(() => {
-            // Autoplay-Sperre Fallback
             video.classList.add('loaded');
             loader.classList.add('hidden');
         });
 
-        // --- ANDROID GLIDE ENGINE ---
+        // --- ANDROID ANTI-LAG ENGINE ---
         function initJourney() {
             let duration = video.duration || 10;
             let safeDuration = duration - 0.1; 
@@ -246,15 +245,10 @@
                 }
             });
 
-            // "Soft-Glide" Ticker
-            // Wir verringern den Faktor auf 0.08 für noch weicheres Nachziehen
-            // Das gibt langsamen Handys mehr Zeit zum Decodieren
+            // Smooth Ticker (Lag-Protection)
             gsap.ticker.add(() => {
                 if(video.readyState >= 1) {
-                    // 0.08 = Sehr weiches, filmisches "Nachziehen"
                     state.current += (state.target - state.current) * 0.08; 
-                    
-                    // Deadzone erhöht auf 0.04s, damit das Handy nicht für micro-frames arbeitet
                     if (!video.seeking && Math.abs(state.current - video.currentTime) > 0.04) {
                         video.currentTime = state.current;
                     }
