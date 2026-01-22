@@ -37,50 +37,52 @@
             object-position: center center;
             display: block; 
             opacity: 0; 
-            transition: opacity 1s ease-out;
+            transition: opacity 0.8s ease-out;
             will-change: transform;
         }
         video.is-active { opacity: 1; }
 
-        /* --- UI LAYER --- */
+        /* --- UI LAYER (Kreatives Placement) --- */
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
             display: flex; flex-direction: column;
-            padding: 5vh 8vw; /* Mehr Seitenabstand für Web */
+            padding: 5vh 5vw;
         }
         
+        /* Titel: Am Handy zentriert, am Web-Browser leicht links-versetzt & riesig */
         .hero-title { 
             flex-grow: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
-            font-size: clamp(3.2rem, 11vw, 10rem); 
+            font-size: clamp(3.5rem, 12vw, 10rem); 
             font-weight: 900; line-height: 0.85; letter-spacing: -0.05em; 
             color: rgba(255, 255, 255, 0.9); mix-blend-mode: overlay; 
-            text-shadow: 0 0 50px rgba(0,0,0,0.6);
+            text-shadow: 0 0 40px rgba(0,0,0,0.5);
             margin: 0; will-change: transform, opacity;
         }
 
-        /* WEB-VERSION PLACEMENT */
-        @media (min-width: 1025px) {
+        /* Web-Spezifisches Placement für den Titel */
+        @media (min-width: 1024px) {
             .hero-title {
-                justify-content: flex-start; /* Titel nach links */
+                justify-content: flex-start;
                 text-align: left;
-                font-size: 7.5vw;
-                max-width: 60%; /* Verhindert, dass der Text zu breit läuft */
+                padding-left: 5vw;
+                font-size: 8vw;
             }
         }
 
         .scroll-hint { 
             text-align: center;
-            font-size: 0.65rem; letter-spacing: 0.45em; font-weight: 800;
-            color: rgba(255,255,255,0.6); text-transform: uppercase;
-            animation: breathe 3s ease-in-out infinite;
-            padding-bottom: 4vh;
+            font-size: 0.7rem; letter-spacing: 0.4em; font-weight: 700;
+            color: rgba(255,255,255,0.7); text-transform: uppercase;
+            animation: breathe 2.5s ease-in-out infinite;
+            padding-bottom: 2vh;
         }
-        @keyframes breathe { 0% { opacity: 0.3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(8px); } 100% { opacity: 0.3; transform: translateY(0); } }
+
+        @keyframes breathe { 0% { opacity: 0.4; transform: translateY(0); } 50% { opacity: 1; transform: translateY(10px); } 100% { opacity: 0.4; transform: translateY(0); } }
 
         /* --- LOADER --- */
         .loader-container {
@@ -90,7 +92,7 @@
         }
         .loader-container.hidden { opacity: 0; }
         .loader {
-            width: 35px; height: 35px; border: 2px solid rgba(255,255,255,0.1); 
+            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.2); 
             border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -102,30 +104,21 @@
             justify-content: center; align-items: center; pointer-events: none; 
         }
 
-        #outro {
-            display: flex; flex-direction: column; gap: 18px;
-        }
-
-        /* Buttons nebeneinander im Web */
-        @media (min-width: 1025px) {
-            #outro { flex-direction: row; gap: 30px; }
-        }
-
         .link-card { 
-            display: grid; grid-template-columns: 24px 1fr 15px; align-items: center; gap: 20px;
-            width: 290px; padding: 22px 30px; 
-            background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
-            border-radius: 100px; text-decoration: none; color: white; 
-            visibility: hidden; opacity: 0; transform: translateY(30px); 
-            pointer-events: auto; transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            display: grid; grid-template-columns: 32px 1fr 20px; align-items: center; gap: 20px;
+            width: auto; min-width: 300px; padding: 20px 30px; margin: 10px 0; 
+            background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
+            border-radius: 50px; text-decoration: none; color: white; 
+            visibility: hidden; opacity: 0; transform: translateY(50px); 
+            pointer-events: auto; transition: all 0.3s;
         }
 
-        .link-text { font-weight: 700; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.05em; }
-        .icon { width: 22px; fill: white; }
+        .link-text { font-weight: 700; font-size: 1.1rem; text-transform: uppercase; }
+        .icon { width: 24px; fill: white; }
         
         @media (hover: hover) {
-            .link-card:hover { background: white; color: black; transform: translateY(-8px) !important; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+            .link-card:hover { background: white; color: black; transform: scale(1.05) !important; }
             .link-card:hover .icon { fill: black; }
         }
 
@@ -146,19 +139,17 @@
         
         <video id="video" muted playsinline webkit-playsinline preload="auto"></video>
 
-        <div class="links-container">
-            <div id="outro">
-                <a href="#" class="link-card" onclick="nav(event, 'https://spotify.com')">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg>
-                    <span class="link-text">Spotify</span>
-                    <span>→</span>
-                </a>
-                <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')">
-                    <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
-                    <span class="link-text">Instagram</span>
-                    <span>→</span>
-                </a>
-            </div>
+        <div class="links-container" id="outro">
+            <a href="#" class="link-card" onclick="nav(event, 'https://spotify.com')">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S16.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.299z"/></svg>
+                <span class="link-text">Spotify</span>
+                <span>→</span>
+            </a>
+            <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
+                <span class="link-text">Instagram</span>
+                <span>→</span>
+            </a>
         </div>
     </div>
     
@@ -168,19 +159,20 @@
         gsap.registerPlugin(ScrollTrigger);
         const video = document.getElementById('video');
         
-        // --- LOGIK FÜR BESTMÖGLICHES VIDEO ---
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        // Optimierte Weiche für Geschwindigkeit
+        let videoSrc = 'journey_mid.mp4'; 
         const conn = navigator.connection || {};
         
-        // Versuche standardmäßig journey_web am Desktop oder journey_mid am Handy
-        let videoSrc = isMobile ? 'journey_mid.mp4' : 'journey_web.mp4';
-
-        // Wenn das Netz extrem gut ist (4G/Ethernet) und Desktop -> journey_web erzwingen
-        // Wenn das Netz schlecht ist -> journey_low
-        if (conn.saveData || (conn.effectiveType && /2g|3g/.test(conn.effectiveType))) {
+        // Wenn am Desktop UND gutes Netz -> High
+        if(!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) && conn.effectiveType === '4g') {
+            videoSrc = 'journey_high.mp4';
+        }
+        // Wenn Netz sehr schlecht -> Low
+        if(conn.saveData || /2g|3g/.test(conn.effectiveType)) {
             videoSrc = 'journey_low.mp4';
         }
 
+        // Schnelles Laden & Scrollen
         function loadVideo() {
             const req = new XMLHttpRequest();
             req.open('GET', videoSrc, true);
@@ -198,14 +190,14 @@
 
         function initScroll() {
             ScrollTrigger.create({
-                trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.05,
+                trigger: "body", start: "top top", end: "bottom bottom", scrub: 0.1,
                 onUpdate: self => {
                     if(video.duration) video.currentTime = self.progress * (video.duration - 0.1);
                 }
             });
 
-            gsap.to("#intro", { scrollTrigger: { scrub: true, start: "top top", end: "25% top" }, opacity: 0, y: -80, scale: 0.9 });
-            gsap.to(".link-card", { scrollTrigger: { scrub: true, start: "65% top", end: "95% top" }, autoAlpha: 1, y: 0, stagger: 0.1 });
+            gsap.to("#intro", { scrollTrigger: { scrub: true, start: "top top", end: "20% top" }, opacity: 0, y: -50 });
+            gsap.to(".link-card", { scrollTrigger: { scrub: true, start: "60% top", end: "90% top" }, autoAlpha: 1, y: 0, stagger: 0.1 });
         }
 
         function nav(e, url) { e.preventDefault(); gsap.to(".flash", { scaleY: 1, duration: 0.4, onComplete: () => window.location.href = url }); }
