@@ -39,7 +39,7 @@
             object-fit: cover; object-position: center center;
             display: block; 
             opacity: 0; 
-            transition: opacity 1.5s ease-out;
+            transition: opacity 1.0s ease-out; /* Etwas schnelleres Fade-In nach Load */
             will-change: transform;
             transform: translate3d(0, 0, 0); 
         }
@@ -122,6 +122,22 @@
         .icon { width: 32px; height: 32px; fill: white; display: block; }
         .arrow-icon { width: 20px; height: 20px; fill: rgba(255,255,255,0.7); display: block; transition: transform 0.2s; }
 
+        /* --- RECHTLICHER FOOTER (Für Instagram Sicherheit) --- */
+        .legal-footer {
+            margin-top: 40px;
+            display: flex; gap: 20px;
+            visibility: hidden; opacity: 0;
+            transform: translateY(20px);
+            pointer-events: auto;
+        }
+        .legal-link {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.75rem; text-decoration: none;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            transition: color 0.3s;
+        }
+        .legal-link:hover { color: white; }
+
         @media (hover: hover) {
             .link-card:hover { background: rgba(255, 255, 255, 1); border-color: white; transform: scale(1.03) !important; }
             .link-card:hover .link-text { color: black; }
@@ -177,6 +193,11 @@
                 <span class="link-text">Instagram</span>
                 <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </a>
+
+            <div class="legal-footer">
+                <a href="impressum.html" class="legal-link">Impressum</a>
+                <a href="datenschutz.html" class="legal-link">Datenschutz</a>
+            </div>
         </div>
     </div>
     
@@ -192,29 +213,22 @@
         
         document.body.style.height = "350vh"; 
 
-        /* --- VIDEO SELECTION LOGIK --- */
-        // Priorität: IMMER 'journey.mp4', außer es geht nicht anders.
+        /* --- CONFIG & VIDEO SELECTION --- */
         let videoSrc = 'journey.mp4'; 
         
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        // Prüfen ob expliziter Datensparmodus ODER sehr langsames Netz (2G)
-        // 3G und 4G auf Handys bekommen jetzt das GUTE Video, sofern der Browser nicht meckert.
-        // Nur bei "slow-2g" oder "Data-Saver" wechseln wir.
         const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-        let forceLowQuality = false;
+        let isSlowConnection = false;
         
         if (connection) {
-            // Nur wechseln, wenn der Nutzer explizit "Data Saver" anhat oder im Funkloch (2G) ist
+            // Nur bei explizitem Datensparen oder sehr schlechtem Netz (2G) auf Low-Quality wechseln
             if (connection.saveData === true || connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
-                forceLowQuality = true;
+                isSlowConnection = true;
             }
         }
 
-        // Falls wir gezwungen werden (schlechtes Netz), nehmen wir das kleine Video.
-        // Ansonsten bekommt JEDER (auch Handys) das gute Video für maximale Qualität.
-        if (forceLowQuality) {
-            videoSrc = 'journey_langsam.mp4'; 
+        if (isMobile || isSlowConnection) {
+            videoSrc = 'journey_langsam.mp4';
         }
 
         /* --- OS DETECTION --- */
@@ -224,10 +238,6 @@
 
         /* --- PERFORMANCE LOGIK --- */
         let isReady = false;
-
-        // SMART LIMITER:
-        // Android = 30ms (ca. 30 FPS) Limit
-        // Andere = 0ms (Unlimitiert, max FPS)
         const frameInterval = isAndroid ? 33 : 0; 
         let lastFrameTime = 0;
 
@@ -252,50 +262,45 @@
                     video.src = vid;
                     video.load();
 
-                    // START MECHANISMUS (Fix für 100% Freeze)
-                    const tryStart = () => {
+                    // FIX FÜR SCHWARZES BILD: Warten auf 'seeked'
+                    // Wir setzen die Zeit, aber zeigen das Video erst, wenn der Browser meldet "Ich habe das Bild"
+                    
+                    const onFrameReady = () => {
                         if (isReady) return;
-                        // Kurzer Play-Impuls um Decoder zu wecken
-                        video.currentTime = 0.001;
-                        startJourney();
+                        isReady = true;
+                        loaderContainer.classList.add('hidden');
+                        video.classList.add('is-active');
+                        initScrollLogic();
                     };
 
-                    // Event Listener: Wenn Video bereit ist
-                    video.onloadeddata = tryStart;
-                    video.oncanplay = tryStart;
+                    video.onloadeddata = () => {
+                        video.currentTime = 0.001; // Trigger seek
+                    };
 
-                    // NOTFALL-FALLBACK: Wenn nach 0.5s kein Event kam, starte trotzdem!
+                    video.onseeked = onFrameReady; // Das ist der entscheidende Event!
+
+                    // Fallback: Wenn 'seeked' hängt, starte trotzdem nach 500ms
                     setTimeout(() => {
-                        if(!isReady) {
-                            console.log("Force starting journey...");
-                            tryStart();
+                        if (!isReady) {
+                            console.log("Force start (Timeout)");
+                            onFrameReady();
                         }
                     }, 500);
                 }
             };
             
             req.onerror = function() { 
-                // Fallback Logik: Falls High-Res fehlschlägt, probiere Low-Res
-                if (videoSrc === 'journey.mp4') {
-                    console.warn("High-Res failed, switching to Low-Res...");
-                    videoSrc = 'journey_langsam.mp4';
-                    loadVideo(); // Neustart mit kleiner Datei
+                if (videoSrc !== 'journey.mp4') {
+                    videoSrc = 'journey.mp4';
+                    loadVideo();
                 } else {
-                    // Wenn auch Low-Res fehlschlägt, erzwinge Start (vielleicht ist src im Cache)
-                    startJourney();
+                    // Notstart bei Fehler
+                    loaderContainer.classList.add('hidden');
+                    video.classList.add('is-active');
+                    initScrollLogic();
                 }
             };
             req.send();
-        }
-
-        function startJourney() {
-            if (isReady) return;
-            isReady = true;
-            
-            loaderContainer.classList.add('hidden');
-            video.classList.add('is-active');
-            
-            initScrollLogic();
         }
 
         loadVideo();
@@ -321,7 +326,10 @@
 
                 const delta = now - lastFrameTime;
 
-                if (delta > frameInterval) {
+                // PERFORMANCE BOOST: Prüfen ob Video gerade seekt (!video.seeking)
+                // Wenn das Video noch mit dem letzten Frame beschäftigt ist, senden wir keinen neuen Befehl.
+                // Das verhindert Stau im Android-Decoder.
+                if (delta > frameInterval && !video.seeking) {
                     if (Math.abs(currentTime - video.currentTime) > 0.001) {
                          video.currentTime = Number(currentTime.toFixed(3));
                     }
@@ -342,10 +350,19 @@
             });
 
             tlOutro.to(video, { filter: "blur(25px)", ease: "power1.inOut" }, 0);
+            
+            // Buttons Animation
             tlOutro.fromTo(".link-card", 
                 { autoAlpha: 0, y: 60, scale: 0.95 },
                 { autoAlpha: 1, y: 0, scale: 1, stagger: 0.12, ease: "power2.out", immediateRender: false }, 
             0.1);
+
+            // FOOTER ANIMATION (Rechtstexte erscheinen)
+            tlOutro.fromTo(".legal-footer",
+                { autoAlpha: 0, y: 20 },
+                { autoAlpha: 1, y: 0, ease: "power2.out" },
+                "<0.5"
+            );
         }
 
         function nav(e, url) { 
