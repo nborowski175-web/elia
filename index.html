@@ -20,6 +20,7 @@
             width: 100%; height: 100%;
             overscroll-behavior: none;
             -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
             scrollbar-width: none; -ms-overflow-style: none;
         }
         body::-webkit-scrollbar { display: none; }
@@ -30,8 +31,9 @@
             height: 100vh; height: 100dvh; 
             overflow: hidden; z-index: 1;
             background: #000;
-            /* GPU Force für maximale Performance */
+            /* Zwingt Hardware-Beschleunigung auf allen Browsern */
             transform: translate3d(0,0,0);
+            -webkit-transform: translate3d(0,0,0);
             backface-visibility: hidden;
             perspective: 1000px;
         }
@@ -41,10 +43,16 @@
             width: 100%; height: 100%; 
             object-fit: cover; object-position: center center;
             display: block; 
-            will-change: contents;
+            /* Wichtig für Ecosia/Chrome: */
+            will-change: transform; 
+            opacity: 0; 
+            transition: opacity 0.5s ease-out;
         }
+        
+        /* Sichtbar-Klasse */
+        video.is-visible { opacity: 1; }
 
-        /* Loader (Kreisel bei schlechtem Netz) */
+        /* Loader */
         .loader {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 40px; height: 40px;
@@ -61,26 +69,20 @@
         .ui-layer { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             z-index: 10; pointer-events: none; 
+            transform: translate3d(0,0,0);
         }
         
-        /* TEXT POSITIONIERUNG: 65% Höhe (Tief, aber ästhetisch) */
         .hero-title { 
             position: absolute;
             top: 65%; left: 50%; transform: translate(-50%, -50%);
             width: 100%; text-align: center;
-            
             font-size: clamp(3.5rem, 11vw, 9.5rem); 
             font-weight: 900; 
             line-height: 0.9; 
             letter-spacing: -0.04em; 
-            
-            /* Clean Look: Overlay + Transparenz */
             color: rgba(255, 255, 255, 0.85); 
             mix-blend-mode: overlay; 
-            
-            /* Soft Glow */
             text-shadow: 0 0 30px rgba(255,255,255,0.25), 0 10px 50px rgba(0,0,0,0.2);
-
             margin: 0;
             will-change: transform, opacity;
         }
@@ -88,12 +90,11 @@
         .scroll-hint { 
             position: absolute; 
             bottom: 10dvh; left: 0; width: 100%; text-align: center;
-            
             font-size: 0.75rem; letter-spacing: 0.35em; font-weight: 700;
             color: rgba(255,255,255,0.9); text-transform: uppercase;
-            
             animation: breathe 2.5s ease-in-out infinite;
             text-shadow: 0 2px 15px rgba(0,0,0,0.6);
+            pointer-events: none;
         }
         
         @keyframes breathe { 
@@ -114,24 +115,18 @@
             display: grid; 
             grid-template-columns: 32px 1fr 20px; 
             align-items: center; gap: 25px;
-
-            width: auto; 
-            min-width: 320px; max-width: 420px;
-            
+            width: auto; min-width: 320px; max-width: 420px;
             padding: 24px 36px; margin: 14px 0; 
-            
-            /* DUNKLES GLAS */
             background: rgba(0, 0, 0, 0.4); 
             border: 1px solid rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
             border-radius: 60px; 
-            
             text-decoration: none; color: white; 
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); 
-            
             visibility: hidden; opacity: 0; transform: translateY(100px); 
             transition: background 0.3s, transform 0.2s, border-color 0.3s;
             pointer-events: auto; 
+            will-change: transform;
         }
 
         .link-text {
@@ -157,6 +152,7 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: white; z-index: 10001; transform: scaleY(0); 
             transform-origin: bottom; pointer-events: none; 
+            will-change: transform;
         }
 
         @media (max-height: 500px) and (orientation: landscape) {
@@ -170,7 +166,7 @@
     <div class="fixed-stage">
         <div class="loader" id="loader"></div>
         
-        <video id="video" muted playsinline webkit-playsinline preload="auto">
+        <video id="video" muted playsinline webkit-playsinline loop preload="auto">
             <source src="journey.mp4" type="video/mp4">
         </video>
 
@@ -207,45 +203,74 @@
 
     <script>
         gsap.registerPlugin(ScrollTrigger);
+        // Deaktiviere GSAP Lag Smoothing, um Ruckler bei Scroll-Sync zu vermeiden
+        gsap.ticker.lagSmoothing(0);
+        
         const video = document.getElementById('video');
         const loader = document.getElementById('loader');
 
         document.body.style.height = "350vh"; 
+        loader.classList.add('visible');
 
-        // --- SMART BUFFERING LOGIC ---
-        
-        // Sofort pausieren, damit wir Kontrolle über den Frame haben
-        video.pause();
+        // --- BROWSER-SAFE START ENGINE ---
 
-        // 1. Initial Start
-        video.play().then(() => {
-            video.pause();
-            checkBuffering();
-        }).catch(() => {
-            // Falls Autoplay blockiert ist, trotzdem versuchen zu buffern
-            checkBuffering();
-        });
-
-        // 2. Buffer Überwachung
-        function checkBuffering() {
-            // readyState 3 oder 4 bedeutet "wir haben genug Daten für flüssiges Playback"
-            if (video.readyState >= 3) {
+        // Funktion: Video sichtbar machen, sobald EIN Frame da ist
+        const showVideo = () => {
+            if (!video.classList.contains('is-visible')) {
                 loader.classList.remove('visible');
-            } else {
-                loader.classList.add('visible');
-                requestAnimationFrame(checkBuffering);
+                video.classList.add('is-visible');
+                initScrollLink();
             }
-        }
-        
-        // Fallback Listener
-        video.addEventListener('waiting', () => loader.classList.add('visible'));
-        video.addEventListener('canplay', () => loader.classList.remove('visible'));
+        };
 
-        // --- ULTRA FLUID SCROLL ENGINE ---
-        function initJourney() {
+        // 1. Kickstart: Versuche Video kurz abzuspielen (für Ecosia/Chrome nötig)
+        const kickstart = async () => {
+            try {
+                // Setze Startzeit manuell
+                video.currentTime = 0.01;
+                await video.play();
+                video.pause();
+                showVideo();
+            } catch (err) {
+                // Falls Autoplay blockiert, erzwingen wir trotzdem das Anzeigen
+                console.log("Autoplay forced handled");
+                showVideo();
+            }
+        };
+
+        // 2. Event Listener: Überwache ALLE Möglichkeiten, wann das Video bereit sein könnte
+        // readyState 1 = HAVE_METADATA (reicht uns, um schwarz zu vermeiden)
+        const checkReady = () => {
+            if (video.readyState >= 1) showVideo();
+        };
+
+        video.addEventListener('loadedmetadata', checkReady);
+        video.addEventListener('loadeddata', checkReady);
+        video.addEventListener('canplay', checkReady);
+        
+        // Loop Check für langsame Netzwerke
+        let checkInterval = setInterval(() => {
+            if (video.readyState >= 1) {
+                showVideo();
+                clearInterval(checkInterval);
+            }
+        }, 200);
+
+        // Failsafe: Nach 4 Sekunden erzwingen wir das Anzeigen (nie mehr Blackscreen)
+        setTimeout(() => {
+            clearInterval(checkInterval);
+            showVideo();
+        }, 4000);
+
+        // Starte den Prozess
+        kickstart();
+
+
+        // --- SCROLL ENGINE (120Hz Optimized) ---
+        function initScrollLink() {
             let duration = video.duration || 10;
-            // Kleiner Puffer am Ende, damit es nicht loopt
-            let safeDuration = duration - 0.05; 
+            // Kleiner Puffer am Ende, damit es nicht springt
+            let safeDuration = duration - 0.1; 
             
             let state = { current: 0, target: 0 };
 
@@ -253,58 +278,42 @@
                 trigger: "body",
                 start: "top top",
                 end: "bottom bottom",
+                scrub: 0, // Wir machen das Scrubbing manuell im Ticker
                 onUpdate: self => {
-                    // Mapping von Scroll-Fortschritt auf Video-Zeit
                     state.target = self.progress * safeDuration;
                 }
             });
 
-            // GSAP Ticker: Läuft synchron mit der Bildschirm-Hertz-Zahl
+            // Der Herzschlag der Animation
             gsap.ticker.add(() => {
-                if(video.readyState >= 1) {
-                    // Die "Magie": Sanfte Interpolation (Lerp) für weiches Gefühl
-                    state.current += (state.target - state.current) * 0.08; 
-                    
-                    // Performance Check: Wir updaten nur, wenn nötig und wenn das Video bereit ist
-                    if (!video.seeking && video.readyState > 2 && Math.abs(state.current - video.currentTime) > 0.04) {
-                        video.currentTime = state.current;
-                    }
+                // Lerp für Weichheit (0.08 ist der "Sweet Spot" für Gewicht)
+                state.current += (state.target - state.current) * 0.08; 
+                
+                // Wir aktualisieren nur, wenn Video bereit ist UND wir nicht seeken
+                // Die Toleranz 0.001 sorgt für weniger CPU Last im Stillstand
+                if (video.readyState >= 1 && Math.abs(state.current - video.currentTime) > 0.005) {
+                    video.currentTime = state.current;
                 }
             });
 
-            // Text Fade Out
+            // Animationen
             gsap.to("#intro", {
                 scrollTrigger: { trigger: "body", start: "top top", end: "30% top", scrub: true },
-                opacity: 0, scale: 0.9, filter: "blur(20px)",
+                opacity: 0, scale: 0.95, filter: "blur(15px)",
             });
 
-            // Blur & Buttons Timeline
             let tlOutro = gsap.timeline({
                 scrollTrigger: {
-                    trigger: "body",
-                    start: "55% top", 
-                    end: "95% bottom",
-                    scrub: 1
+                    trigger: "body", start: "55% top", end: "95% bottom", scrub: 1
                 }
             });
 
-            // Weicher Blur Effekt
             tlOutro.to(video, { filter: "blur(25px)", ease: "power1.inOut" }, 0);
 
-            // Buttons erscheinen lassen
             tlOutro.fromTo(".link-card", 
-                { autoAlpha: 0, y: 80, scale: 0.95 },
-                { autoAlpha: 1, y: 0, scale: 1, stagger: 0.15, ease: "power2.out", immediateRender: false }, 
+                { autoAlpha: 0, y: 60, scale: 0.95 },
+                { autoAlpha: 1, y: 0, scale: 1, stagger: 0.12, ease: "power2.out", immediateRender: false }, 
             0.1);
-        }
-
-        // Initialsierung sicherstellen
-        if (video.readyState >= 1) {
-            initJourney();
-        } else {
-            video.onloadedmetadata = initJourney;
-            // Fallback nach 1 Sekunde, falls Event verschluckt wurde
-            setTimeout(() => { if(!ScrollTrigger.getAll().length) initJourney(); }, 1000);
         }
 
         function nav(e, url) { 
