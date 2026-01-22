@@ -46,9 +46,8 @@
         
         video.is-active { opacity: 1; }
 
-        /* --- LOADER POSITION (ANGEPASST) --- */
+        /* Loader */
         .loader-container {
-            /* Positioniert auf 52% Höhe - die goldene Mitte zwischen Mond und Schrift */
             position: absolute; top: 52%; left: 50%; transform: translate(-50%, -50%);
             z-index: 100; display: flex; flex-direction: column; align-items: center;
             transition: opacity 0.5s; pointer-events: none;
@@ -108,13 +107,28 @@
             width: auto; min-width: 320px; max-width: 420px;
             padding: 24px 36px; margin: 14px 0; 
             background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.15);
+            
+            /* APPLE: Blur an / ANDROID: Wird per JS entfernt */
             backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
+            
             border-radius: 60px; text-decoration: none; color: white; 
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25); 
             visibility: hidden; opacity: 0; transform: translateY(100px); 
             transition: background 0.3s, transform 0.2s, border-color 0.3s;
             pointer-events: auto; will-change: transform;
         }
+        
+        /* Android Fallback Klasse (wird per JS hinzugefügt) */
+        body.is-android .link-card {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            background: rgba(0, 0, 0, 0.85) !important; /* Dunklerer Hintergrund statt Blur */
+        }
+        body.is-android #video {
+             /* Deaktiviert Blur-Filter auf dem Video selbst bei Android */
+             filter: none !important;
+        }
+
         .link-text { font-weight: 700; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 0.05em; text-align: left; }
         .icon { width: 32px; height: 32px; fill: white; display: block; }
         .arrow-icon { width: 20px; height: 20px; fill: rgba(255,255,255,0.7); display: block; transition: transform 0.2s; }
@@ -170,7 +184,7 @@
                 <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </a>
             <a href="#" class="link-card" onclick="nav(event, 'https://instagram.com')">
-                <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
+                <svg class="icon" viewBox="0 0 24 24"><path d="M7.8,2H16.2C19.4,2 22,4.6 22,7.8V16.2A5.8,5.8 0 0,1 16.2,22H7.8C4.6,22 2,19.4 2,16.2V7.8A5.8,5.8 0 0,1 7.8,2M7.6,4A3.6,3.6 0 0,0 4,7.6V16.4C4,18.39 5.61,20 7.6,20H16.4A3.6,3.6 0 0,0 20,16.4V7.6C20,5.61 18.39,4 16.4,4H7.6M17.25,5.5A1.25,1.25 0 0,1 18.5,6.75A1.25,1.25 0 0,1 17.25,8A1.25,1.25 0 0,1 16,6.75A1.25,1.25 0 0,1 17.25,5.5M12,7A5,5 0 0,1 17,12A5,5 0 0,1 12,17A5,5 0 0,1 7,12A5,5 0 0,1 12,7M12,9A3,3 0 0,0 9,12A3,3 0 0,0 12,15A3,3 0 0,0 15,12A3,3 0 0,0 12,9Z"/></svg>
                 <span class="link-text">Instagram</span>
                 <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
             </a>
@@ -189,23 +203,31 @@
         
         document.body.style.height = "350vh"; 
 
-        /* --- VIDEO DATEI --- */
+        /* --- CONFIG --- */
         const videoSrc = 'journey.mp4';
-
-        /* --- INTELLIGENTE SYSTEM-ERKENNUNG --- */
+        
         const ua = navigator.userAgent.toLowerCase();
         const isApple = /mac|iphone|ipad|ipod/.test(ua);
         const isWindows = /win/.test(ua);
+        // Strengerer Android Check
+        const isAndroid = /android/.test(ua);
         
-        // Threshold Einstellung
-        let updateThreshold;
-        if (isApple) updateThreshold = 0.001;
-        else if (isWindows) updateThreshold = 0.015;
-        else updateThreshold = 0.045; // Android
+        // CSS Klasse für Android-spezifische Styles (Blur deaktivieren)
+        if (isAndroid) {
+            document.body.classList.add('is-android');
+        }
+
+        // TWEAKING SETTINGS
+        // Android "Smoothing" drastisch reduzieren für direktere Reaktion
+        // Apple bekommt "Butterweich" (0.08), Android bekommt "Direkt" (0.15)
+        const lerpFactor = (isAndroid || isWindows) ? 0.15 : 0.08;
         
+        // Android Threshold etwas lockerer lassen, damit der Decoder atmen kann
+        const updateThreshold = isApple ? 0.001 : 0.04; 
+
         let isReady = false;
 
-        /* --- 1. DOWNLOAD MANAGER (BLOB FETCH) --- */
+        /* --- DOWNLOAD --- */
         function loadVideo() {
             const req = new XMLHttpRequest();
             req.open('GET', videoSrc, true);
@@ -222,9 +244,7 @@
                 if (this.status === 200) {
                     const videoBlob = this.response;
                     const vid = URL.createObjectURL(videoBlob);
-                    
                     video.src = vid;
-                    
                     video.load();
                     video.onloadedmetadata = function() {
                         video.currentTime = 0.001;
@@ -232,29 +252,21 @@
                     };
                 }
             };
-
-            req.onerror = function() {
-                video.src = videoSrc;
-                startJourney();
-            };
-
+            req.onerror = function() { video.src = videoSrc; startJourney(); };
             req.send();
         }
 
         function startJourney() {
             if (isReady) return;
             isReady = true;
-
             loaderContainer.classList.add('hidden');
             video.classList.add('is-active');
-            
             initScrollLogic();
         }
 
         loadVideo();
 
-
-        /* --- 2. RENDER ENGINE --- */
+        /* --- ENGINE --- */
         function initScrollLogic() {
             const duration = video.duration || 10;
             const safeDuration = duration - 0.1;
@@ -270,8 +282,10 @@
             });
 
             function render() {
-                currentTime += (targetTime - currentTime) * 0.08;
+                // Unterschiedliche Interpolation je nach OS
+                currentTime += (targetTime - currentTime) * lerpFactor;
 
+                // Intelligentes Update: Nur wenn Änderung signifikant
                 if (Math.abs(currentTime - video.currentTime) >= updateThreshold) {
                     video.currentTime = Number(currentTime.toFixed(3));
                 }
@@ -289,7 +303,14 @@
                 scrollTrigger: { trigger: "body", start: "55% top", end: "95% bottom", scrub: 1 }
             });
 
-            tlOutro.to(video, { filter: "blur(25px)", ease: "power1.inOut" }, 0);
+            // Video Blur am Ende nur auf Apple aktivieren
+            if (!isAndroid) {
+                tlOutro.to(video, { filter: "blur(25px)", ease: "power1.inOut" }, 0);
+            } else {
+                // Auf Android einfach abdunkeln statt Blur (Performanter)
+                tlOutro.to(video, { filter: "brightness(0.4)", ease: "power1.inOut" }, 0);
+            }
+
             tlOutro.fromTo(".link-card", 
                 { autoAlpha: 0, y: 60, scale: 0.95 },
                 { autoAlpha: 1, y: 0, scale: 1, stagger: 0.12, ease: "power2.out", immediateRender: false }, 
